@@ -127,6 +127,10 @@ label input,label select{width:110px;padding:8px;border-radius:10px;border:1px s
     <p class="note">Reproduce un audio casi inaudible para que el celular siga midiendo con la pantalla apagada, y publica los datos en Reproduciendo ahora, que puedes ver en el Apple Watch. Es experimental: puede pausar tu música y gasta más batería del celular.</p>
     <label>Mostrar mapa<input id="mapOn" type="checkbox" checked style="width:auto"></label>
     <label>Aviso por voz cada (km, 0 = no)<input id="kmEvery" type="number" inputmode="decimal" value="5"></label>
+    <label>Voz<select id="voiceSel" style="width:170px"></select></label>
+    <label>Velocidad de la voz<input id="rate" type="range" min="0.7" max="1.2" step="0.05" style="width:140px"></label>
+    <label>Probar la voz<button id="vtest" type="button">Escuchar</button></label>
+    <p class="note">La app usa las voces instaladas en tu iPhone. Para una voz más natural, descarga una que diga Premium o Mejorada en Ajustes, Accesibilidad, Contenido hablado, Voces, Español. Luego vuelve aquí y elígela.</p>
     <label>Tema<button id="theme" type="button">Cambiar</button></label>
     <p class="note">El consumo inicial es un valor de partida: ajústalo con tus datos. A medida que bajas de porcentaje y avanzas, la app lo reemplaza por tu consumo real de los últimos 3 km. Actualiza el % en las paradas, no en marcha.</p>
     <p class="note">Privacidad: tu ubicación se procesa solo en este celular. La app no tiene cuentas ni cookies y no envía tu ubicación ni tus viajes a ningún servidor. Si el mapa está activado, tu celular descarga la librería del mapa (cdnjs) y los mosaicos de OpenStreetMap, y esos servicios pueden ver tu dirección IP y la zona que consultas; desactiva el mapa en Ajustes para evitarlo. Solo guarda tus ajustes y viajes en este navegador, y puedes borrarlos en Historial.</p>
@@ -144,7 +148,7 @@ label input,label select{width:110px;padding:8px;border-radius:10px;border:1px s
 
 <script>
 const $ = id => document.getElementById(id);
-const S = {cap:187.2, res:5, base:8, voice:true, map:true, kmEvery:5};
+const S = {cap:187.2, res:5, base:8, voice:true, map:true, kmEvery:5, voiceName:'', rate:0.95};
 try { Object.assign(S, JSON.parse(localStorage.getItem('mp-settings') || '{}')); } catch(e) {}
 const T = {on:false, dist:0, mov:0, pct:100, startPct:100, log:[], spd:0, last:null, watch:null, lock:null, said:{}, dir:S.dir || 'otro', asc:0, desc:0, alt:null, altRef:null, id:null, max:0, pts:[], lastPt:0, ri:0};
 
@@ -187,8 +191,29 @@ function render(){
   if (ar && T.on && ar.pct < 10 && !T.said.arr) { T.said.arr = 1; say('Atención: con este ritmo llegarás con aproximadamente ' + Math.max(0, Math.round(ar.pct)) + ' por ciento de batería.'); }
 }
 
-function say(t){ if (!S.voice || !('speechSynthesis' in window)) return;
-  try { const u = new SpeechSynthesisUtterance(t); u.lang = 'es-CO'; speechSynthesis.speak(u); } catch(e) {} }
+let VOX = [];
+function vScore(v){
+  const n = (v.name + ' ' + (v.voiceURI || '')).toLowerCase(); let s = 0;
+  if (/premium|enhanced|mejorad|neural|siri/.test(n)) s += 10;
+  if (/^es[-_]co/i.test(v.lang)) s += 3; else if (/^es[-_](mx|us|419)/i.test(v.lang)) s += 2;
+  if (v.localService) s += 1; return s;
+}
+function loadVoices(){
+  try { VOX = speechSynthesis.getVoices().filter(v => /^es/i.test(v.lang)).sort((a, b) => vScore(b) - vScore(a)); } catch(e) {}
+  const sel = $('voiceSel'); if (!sel) return; sel.textContent = '';
+  const o0 = document.createElement('option'); o0.value = ''; o0.textContent = 'Automática (la mejor)'; sel.appendChild(o0);
+  VOX.forEach(v => { const o = document.createElement('option'); o.value = v.voiceURI; o.textContent = v.name + ' (' + v.lang + ')'; sel.appendChild(o); });
+  sel.value = S.voiceName || '';
+}
+function say(t, force){
+  if ((!S.voice && !force) || !('speechSynthesis' in window)) return;
+  try {
+    const u = new SpeechSynthesisUtterance(t);
+    const v = (S.voiceName && VOX.find(x => x.voiceURI === S.voiceName)) || VOX[0];
+    if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'es-CO';
+    u.rate = S.rate || 0.95; u.pitch = 1; speechSynthesis.speak(u);
+  } catch(e) {}
+}
 
 function setPct(v){
   v = Math.max(0, Math.min(100, Math.round(v)));
@@ -387,6 +412,10 @@ async function exportCsv(){
   try { if (navigator.canShare && navigator.canShare({files:[f]})) { await navigator.share({files:[f], title:'Viajes de patineta'}); return; } } catch(e) { if (e.name === 'AbortError') return; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
 }
+if ('speechSynthesis' in window) { speechSynthesis.onvoiceschanged = loadVoices; loadVoices(); }
+$('voiceSel').onchange = e => { S.voiceName = e.target.value; save(); };
+$('rate').value = S.rate; $('rate').oninput = e => { S.rate = +e.target.value; save(); };
+$('vtest').onclick = () => say('Hola. Viaje iniciado. Batería al 80 por ciento. Autonomía estimada: 18 kilómetros.', true);
 $('exp').onclick = exportCsv;
 $('kmEvery').value = S.kmEvery; $('kmEvery').onchange = e => { S.kmEvery = Math.max(0, +e.target.value || 0); save(); };
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
