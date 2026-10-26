@@ -97,6 +97,8 @@ label input,label select{width:110px;padding:8px;border-radius:10px;border:1px s
     <div class="card"><div class="cv num"><span id="vmax">0</span><small>km/h</small></div><div class="cl">Velocidad máx.</div></div>
     <div class="card"><div class="cv num"><span id="avg">0</span><small>km/h</small></div><div class="cl">Velocidad media</div></div>
     <div class="card"><div class="cv num"><span id="rt">—</span><small>h:mm</small></div><div class="cl">Tiempo restante</div></div>
+    <div class="card"><div class="cv num"><span id="rem">—</span><small>km</small></div><div class="cl">Falta de ruta</div></div>
+    <div class="card"><div class="cv num"><span id="arr">—</span><small>%</small></div><div class="cl">Llegarás con</div></div>
     <div class="card"><div class="cv num"><span id="used">0</span><small>Wh</small></div><div class="cl">Energía usada</div></div>
     <div class="card"><div class="cv num"><span id="asc">0</span><small>m</small></div><div class="cl">Subida acumulada</div></div>
     <div class="card"><div class="cv num"><span id="desc">0</span><small>m</small></div><div class="cl">Bajada acumulada</div></div>
@@ -124,6 +126,7 @@ label input,label select{width:110px;padding:8px;border-radius:10px;border:1px s
     <label>Modo reloj (pantalla apagada)<input id="watch" type="checkbox" style="width:auto"></label>
     <p class="note">Reproduce un audio casi inaudible para que el celular siga midiendo con la pantalla apagada, y publica los datos en Reproduciendo ahora, que puedes ver en el Apple Watch. Es experimental: puede pausar tu música y gasta más batería del celular.</p>
     <label>Mostrar mapa<input id="mapOn" type="checkbox" checked style="width:auto"></label>
+    <label>Aviso por voz cada (km, 0 = no)<input id="kmEvery" type="number" inputmode="decimal" value="5"></label>
     <label>Tema<button id="theme" type="button">Cambiar</button></label>
     <p class="note">El consumo inicial es un valor de partida: ajústalo con tus datos. A medida que bajas de porcentaje y avanzas, la app lo reemplaza por tu consumo real de los últimos 3 km. Actualiza el % en las paradas, no en marcha.</p>
     <p class="note">Privacidad: tu ubicación se procesa solo en este celular. La app no tiene cuentas ni cookies y no envía tu ubicación ni tus viajes a ningún servidor. Si el mapa está activado, tu celular descarga la librería del mapa (cdnjs) y los mosaicos de OpenStreetMap, y esos servicios pueden ver tu dirección IP y la zona que consultas; desactiva el mapa en Ajustes para evitarlo. Solo guarda tus ajustes y viajes en este navegador, y puedes borrarlos en Historial.</p>
@@ -133,6 +136,7 @@ label input,label select{width:110px;padding:8px;border-radius:10px;border:1px s
     <summary>Historial</summary>
     <div id="hist" class="note">Aún no hay viajes guardados.</div>
     <p class="note">Los viajes se guardan al pausar. Con 2 km o más guardados en una dirección, la app usa tu consumo real de esa dirección como punto de partida.</p>
+    <button id="exp" type="button">Exportar CSV</button>
     <button id="clr" type="button">Borrar historial</button>
     <button id="clrAll" type="button">Borrar todos mis datos</button>
   </details>
@@ -140,9 +144,9 @@ label input,label select{width:110px;padding:8px;border-radius:10px;border:1px s
 
 <script>
 const $ = id => document.getElementById(id);
-const S = {cap:187.2, res:5, base:8, voice:true, map:true};
+const S = {cap:187.2, res:5, base:8, voice:true, map:true, kmEvery:5};
 try { Object.assign(S, JSON.parse(localStorage.getItem('mp-settings') || '{}')); } catch(e) {}
-const T = {on:false, dist:0, mov:0, pct:100, startPct:100, log:[], spd:0, last:null, watch:null, lock:null, said:{}, dir:S.dir || 'otro', asc:0, desc:0, alt:null, altRef:null, id:null, max:0};
+const T = {on:false, dist:0, mov:0, pct:100, startPct:100, log:[], spd:0, last:null, watch:null, lock:null, said:{}, dir:S.dir || 'otro', asc:0, desc:0, alt:null, altRef:null, id:null, max:0, pts:[], lastPt:0, ri:0};
 
 function save(){ try { localStorage.setItem('mp-settings', JSON.stringify(S)); } catch(e) {} }
 function fmtDur(s){ s = Math.round(s); const hh = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60, p = n => String(n).padStart(2, '0'); return hh ? hh + ':' + p(m) + ':' + p(x) : m + ':' + p(x); }
@@ -179,6 +183,8 @@ function render(){
   const p = $('pct'); p.className = 'num' + (T.pct <= 10 ? ' crit' : T.pct <= 20 ? ' low' : '');
   $('range').dataset.lvl = T.pct <= 10 ? 'crit' : T.pct <= 20 ? 'low' : ''; $('pctv').textContent = T.pct; $('fill').style.width = T.pct + '%';
   nowPlaying(rangeKm, avg, kmh);
+  const ar = arrival(); $('rem').textContent = ar ? ar.km.toFixed(1) : '—'; $('arr').textContent = ar ? Math.max(0, Math.round(ar.pct)) : '—';
+  if (ar && T.on && ar.pct < 10 && !T.said.arr) { T.said.arr = 1; say('Atención: con este ritmo llegarás con aproximadamente ' + Math.max(0, Math.round(ar.pct)) + ' por ciento de batería.'); }
 }
 
 function say(t){ if (!S.voice || !('speechSynthesis' in window)) return;
@@ -210,6 +216,8 @@ function onPos(p){
     else if (Math.abs(T.alt - T.altRef) >= 4) { if (T.alt > T.altRef) T.asc += T.alt - T.altRef; else T.desc += T.altRef - T.alt; T.altRef = T.alt; } }
   T.last = {c: {latitude:c.latitude, longitude:c.longitude}, t: p.timestamp};
   mapPos(c.latitude, c.longitude);
+  if (T.on && T.id && T.dist - T.lastPt >= 25) { T.pts.push([+c.latitude.toFixed(5), +c.longitude.toFixed(5), Math.round(T.dist), Math.round(T.asc), Math.round(T.desc)]); T.lastPt = T.dist; }
+  kmAlert();
   render();
 }
 
@@ -234,15 +242,18 @@ function pause(){
   saveTrip(); $('gps').textContent = 'En pausa.'; render();
 }
 $('go').onclick = () => T.on ? pause() : start();
-$('reset').onclick = () => { if (T.on) pause(); Object.assign(T, {dist:0, mov:0, log:[], said:{}, startPct:T.pct, spd:0, id:null, asc:0, desc:0, alt:null, altRef:null, max:0}); if (TR) TR.setLatLngs([]); $('go').textContent = 'Iniciar viaje'; $('gps').textContent = 'Viaje reiniciado.'; render(); };
+$('reset').onclick = () => { if (T.on) pause(); Object.assign(T, {dist:0, mov:0, log:[], said:{}, startPct:T.pct, spd:0, id:null, asc:0, desc:0, alt:null, altRef:null, max:0, pts:[], lastPt:0, ri:0}); if (TR) TR.setLatLngs([]); $('go').textContent = 'Iniciar viaje'; $('gps').textContent = 'Viaje reiniciado.'; render(); };
 let finTimer = 0;
-function showSummary(rows, note){
+function showSummary(rows, note, rt, dir){
   const el = $('sum'); el.textContent = '';
   const t = document.createElement('h2'); t.textContent = 'Viaje finalizado'; el.appendChild(t);
   rows.forEach(([k, v]) => { const r = document.createElement('div'); r.className = 'srow';
     const a = document.createElement('span'); a.textContent = k;
     const b = document.createElement('b'); b.textContent = v; r.append(a, b); el.appendChild(r); });
   const n = document.createElement('div'); n.className = 'sub'; n.textContent = note; el.appendChild(n);
+  if (rt) { const g = document.createElement('button'); g.textContent = 'Guardar como ruta de ' + DL[dir];
+    g.onclick = () => { RT[dir] = rt; try { localStorage.setItem('mp-routes', JSON.stringify(RT)); } catch(e) {} T.ri = 0; drawRoute(); g.textContent = 'Ruta guardada'; g.disabled = true; };
+    el.appendChild(g); }
   const c = document.createElement('button'); c.textContent = 'Cerrar'; c.onclick = () => { el.hidden = true; }; el.appendChild(c);
   el.hidden = false; el.scrollIntoView({block:'start'});
 }
@@ -255,8 +266,9 @@ function finish(){
     ['Batería', T.startPct + ' % a ' + T.pct + ' %'], ['Energía usada', Math.round(wh) + ' Wh']];
   if (drop > 0 && km >= 0.3) rows.push(['Consumo', (wh / km).toFixed(1) + ' Wh/km']);
   rows.push(['Sube / Baja', Math.round(T.asc) + ' m / ' + Math.round(T.desc) + ' m']);
-  showSummary(rows, T.dist >= 200 ? 'Guardado en el historial (' + DL[T.dir] + ').' : 'Viaje muy corto: no se guardó en el historial.');
-  Object.assign(T, {dist:0, mov:0, log:[], said:{}, startPct:T.pct, spd:0, id:null, asc:0, desc:0, alt:null, altRef:null, max:0});
+  const rt = T.pts.length > 10 ? {pts:T.pts.slice()} : null;
+  showSummary(rows, T.dist >= 200 ? 'Guardado en el historial (' + DL[T.dir] + ').' : 'Viaje muy corto: no se guardó en el historial.', rt, T.dir);
+  Object.assign(T, {dist:0, mov:0, log:[], said:{}, startPct:T.pct, spd:0, id:null, asc:0, desc:0, alt:null, altRef:null, max:0, pts:[], lastPt:0, ri:0});
   if (TR) TR.setLatLngs([]);
   $('go').textContent = 'Iniciar viaje'; $('gps').textContent = 'Viaje finalizado. GPS apagado.'; render();
   say('Viaje finalizado. Recorriste ' + km.toFixed(1).replace('.', ',') + ' kilómetros en ' + (avg > 0 ? Math.round(km / avg * 60) : 0) + ' minutos. Batería al ' + T.pct + ' por ciento.');
@@ -330,16 +342,54 @@ function renderHist(){
     el.appendChild(r);
   });
 }
-document.querySelectorAll('#dir button').forEach(b => b.onclick = () => { S.dir = T.dir = b.dataset.d; save(); render(); });
+document.querySelectorAll('#dir button').forEach(b => b.onclick = () => { S.dir = T.dir = b.dataset.d; T.ri = 0; save(); drawRoute(); render(); });
 $('clr').onclick = () => { H = []; try { localStorage.removeItem('mp-trips'); } catch(e) {} renderHist(); render(); };
 $('clrAll').onclick = () => {
   H = []; T.id = null;
-  try { localStorage.removeItem('mp-trips'); localStorage.removeItem('mp-settings'); } catch(e) {}
+  try { localStorage.removeItem('mp-trips'); localStorage.removeItem('mp-settings'); localStorage.removeItem('mp-routes'); RT = {}; drawRoute(); } catch(e) {}
   Object.assign(S, {cap:187.2, res:5, base:8, voice:true, watch:false, dir:'otro'}); T.dir = 'otro';
   $('cap').value = S.cap; $('res').value = S.res; $('base').value = S.base; $('voice').checked = true; $('watch').checked = false; $('capSel').value = '187.2';
   renderHist(); render();
 };
-let MAP = null, MK = null, TR = null, MAPINIT = false;
+let MAP = null, MK = null, TR = null, RL = null, MAPINIT = false;
+let RT = {}; try { RT = JSON.parse(localStorage.getItem('mp-routes') || '{}'); } catch(e) {}
+function drawRoute(){ if (!RL) return; const r = RT[T.dir]; RL.setLatLngs(r ? r.pts.map(q => [q[0], q[1]]) : []); }
+function kmAlert(){
+  const k = S.kmEvery; if (!k || !T.on) return;
+  const n = Math.floor(T.dist / 1000 / k); if (n < 1 || T.said['k' + n]) return; T.said['k' + n] = 1;
+  const r = Math.max(0, S.cap * (T.pct - S.res) / 100 / whPerKm());
+  say('Llevas ' + (n * k) + ' kilómetros. Batería al ' + T.pct + ' por ciento. Autonomía restante: ' + Math.round(r) + ' kilómetros.');
+}
+const mWh = (km, asc, desc) => 3 * km + 0.4 * asc - 0.06 * desc;
+function kCal(){
+  const a = H.filter(t => t.whkm && t.km >= 1 && t.wh > 0); let k = 1;
+  if (a.length) k = a.reduce((x, t) => x + t.wh, 0) / a.reduce((x, t) => x + Math.max(1, mWh(t.km, t.asc, t.desc)), 0);
+  const drop = T.startPct - T.pct;
+  if (T.dist >= 1500 && drop > 0) { const kn = drop * S.cap / 100 / Math.max(1, mWh(T.dist / 1000, T.asc, T.desc)); k = a.length ? (k + kn) / 2 : kn; }
+  return Math.min(2, Math.max(0.5, k));
+}
+function arrival(){
+  const r = RT[T.dir]; if (!r || !T.last || !T.on) return null;
+  const P = r.pts, la = T.last.c.latitude, lo = T.last.c.longitude, w = (T.ri === 0 && T.dist < 100) ? P.length : 60;
+  let best = -1, bd = 1e9;
+  for (let i = T.ri; i < Math.min(P.length, T.ri + w); i++) { const d = hav({latitude:P[i][0], longitude:P[i][1]}, {latitude:la, longitude:lo}); if (d < bd) { bd = d; best = i; } }
+  if (best < 0 || bd > 100) return null;
+  T.ri = best; const q = P[best], z = P[P.length - 1];
+  const km = (z[2] - q[2]) / 1000, need = kCal() * Math.max(0, mWh(km, z[3] - q[3], z[4] - q[4]));
+  return {km, pct: T.pct - need / S.cap * 100};
+}
+async function exportCsv(){
+  if (!H.length) return;
+  const off = new Date().getTimezoneOffset() * 60000;
+  const rows = [['fecha', 'direccion', 'km', 'minutos', 'wh', 'wh_por_km', 'sube_m', 'baja_m']].concat(H.map(t =>
+    [new Date(t.id - off).toISOString().slice(0, 16).replace('T', ' '), t.dir, t.km, Math.round(t.mov / 60), t.wh, t.whkm == null ? '' : t.whkm, t.asc, t.desc]));
+  const f = new File(['\ufeff' + rows.map(r => r.join(',')).join('\n')], 'viajes-patineta.csv', {type:'text/csv'});
+  try { if (navigator.canShare && navigator.canShare({files:[f]})) { await navigator.share({files:[f], title:'Viajes de patineta'}); return; } } catch(e) { if (e.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
+}
+$('exp').onclick = exportCsv;
+$('kmEvery').value = S.kmEvery; $('kmEvery').onchange = e => { S.kmEvery = Math.max(0, +e.target.value || 0); save(); };
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 function startSay(){
   const e = whPerKm(), km = Math.max(0, S.cap * (T.pct - S.res) / 100 / e);
   say('Viaje iniciado. Batería al ' + T.pct + ' por ciento. Autonomía estimada: ' + Math.round(km) + ' kilómetros.');
@@ -355,7 +405,8 @@ function initMap(){
     const c0 = [6.2442, -75.5812];
     MAP = L.map('map', {zoomControl:false}).setView(c0, 14);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(MAP);
-    TR = L.polyline([], {color:'#5fa8ea', weight:5}).addTo(MAP);
+    RL = L.polyline([], {color:'#8b95ab', weight:4, dashArray:'6 8'}).addTo(MAP);
+    TR = L.polyline([], {color:'#5fa8ea', weight:5}).addTo(MAP); drawRoute();
     MK = L.circleMarker(c0, {radius:8, color:'#fff', weight:3, fillColor:'#d4382c', fillOpacity:1}).addTo(MAP);
     if (T.last) mapPos(T.last.c.latitude, T.last.c.longitude);
   } catch(e) {} });
