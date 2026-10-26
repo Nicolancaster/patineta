@@ -130,6 +130,8 @@ label input,label select{width:110px;padding:8px;border-radius:10px;border:1px s
     <label>Modo reloj (pantalla apagada)<input id="watch" type="checkbox" style="width:auto"></label>
     <p class="note">Reproduce un audio casi inaudible para que el celular siga midiendo con la pantalla apagada, y publica los datos en Reproduciendo ahora, que puedes ver en el Apple Watch. Es experimental: puede pausar tu música y gasta más batería del celular.</p>
     <label>Mostrar mapa<input id="mapOn" type="checkbox" checked style="width:auto"></label>
+    <label>Mezclar con mi música (experimental)<input id="mix" type="checkbox" style="width:auto"></label>
+    <p class="note">Con el Modo reloj activo, intenta que el audio silencioso de la app no pause tu música. Depende de la versión de iOS: pruébalo con un recorrido corto.</p>
     <label>Aviso por voz cada (km, 0 = no)<input id="kmEvery" type="number" inputmode="decimal" value="5"></label>
     <label>Alerta de velocidad (km/h, 0 = no)<input id="vLim" type="number" inputmode="decimal" value="0"></label>
     <label>Voz<select id="voiceSel" style="width:170px"></select></label>
@@ -346,7 +348,7 @@ function silentWav(){
   return 'data:audio/wav;base64,' + btoa(String.fromCharCode(...b));
 }
 function watchOn(){
-  try { AU = AU || new Audio(silentWav()); AU.loop = true; AU.play().catch(() => {});
+  try { if (navigator.audioSession) navigator.audioSession.type = S.mix ? 'ambient' : 'auto'; AU = AU || new Audio(silentWav()); AU.loop = true; AU.play().catch(() => {});
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing'; } catch(e) {}
 }
 function watchOff(){
@@ -494,6 +496,7 @@ function plan(){
   const mins = Math.round(miss / (W * 0.85) * 60);
   out.textContent = 'Para ' + km + ' km necesitas salir con al menos ' + target + ' % (consumo de ' + e.toFixed(1) + ' Wh/km). Te faltan ' + Math.round(miss) + ' Wh: carga unos ' + Math.floor(mins / 60) + ' h ' + String(mins % 60).padStart(2, '0') + ' min con tu cargador de ' + W + ' W.';
 }
+$('mix').checked = !!S.mix; $('mix').onchange = e => { S.mix = e.target.checked; save(); };
 $('vLim').value = S.vLim || 0; $('vLim').onchange = e => { S.vLim = Math.max(0, +e.target.value || 0); save(); };
 $('shareLoc').onclick = shareLoc;
 $('chW').value = S.chW || 50; $('chKm').value = S.chKm || 10; $('chNow').value = T.pct; $('chGo').onclick = plan;
