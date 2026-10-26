@@ -243,17 +243,24 @@ function setPct(v){
 
 function onPos(p){
   const c = p.coords;
-  if (c.accuracy > 40) { $('gps').textContent = 'Señal GPS débil (±' + Math.round(c.accuracy) + ' m)'; return; }
+  if (c.accuracy > 30) { $('gps').textContent = 'Señal GPS débil (±' + Math.round(c.accuracy) + ' m)'; return; }
+  const prev = T.last, dt = prev ? (p.timestamp - prev.t) / 1000 : 0;
+  if (prev && dt < 0.8 && c.speed == null) return;
   $('gps').textContent = 'GPS activo (±' + Math.round(c.accuracy) + ' m)';
-  let v = c.speed != null ? c.speed * 3.6 : 0;
-  const prev = T.last;
-  if (c.speed == null && prev) { const dt = (p.timestamp - prev.t) / 1000; if (dt > 0) v = hav(prev.c, c) / dt * 3.6; }
-  T.spd = 0.6 * T.spd + 0.4 * v; if (T.spd < 1.5) T.spd = 0; if (T.spd > T.max) T.max = T.spd;
-  if (prev && T.spd > 0) { const d = hav(prev.c, c), dt = (p.timestamp - prev.t) / 1000;
-    if (d >= 1 && d < 200 && dt < 15) { T.dist += d; T.mov += dt; } }
-  if (c.altitude != null) { T.alt = T.alt == null ? c.altitude : 0.8 * T.alt + 0.2 * c.altitude;
+  const d = prev ? hav(prev.c, c) : 0;
+  let v;
+  if (c.speed != null && c.speed >= 0) v = c.speed * 3.6;
+  else if (prev) v = d > Math.max(3, c.accuracy) ? d / dt * 3.6 : 0;
+  else v = 0;
+  if (v > 60) return;
+  T.spd = 0.6 * T.spd + 0.4 * v; if (T.spd < 2) T.spd = 0;
+  if (T.spd > T.max) T.max = T.spd;
+  const moving = T.spd >= 2;
+  if (prev && moving && d >= 1 && d < 200 && dt < 15) { T.dist += d; T.mov += dt; }
+  if (c.altitude != null && moving && (c.altitudeAccuracy == null || c.altitudeAccuracy <= 15)) {
+    T.alt = T.alt == null ? c.altitude : 0.8 * T.alt + 0.2 * c.altitude;
     if (T.altRef == null) T.altRef = T.alt;
-    else if (Math.abs(T.alt - T.altRef) >= 4) { if (T.alt > T.altRef) T.asc += T.alt - T.altRef; else T.desc += T.altRef - T.alt; T.altRef = T.alt; } }
+    else if (Math.abs(T.alt - T.altRef) >= 6) { if (T.alt > T.altRef) T.asc += T.alt - T.altRef; else T.desc += T.altRef - T.alt; T.altRef = T.alt; } }
   T.last = {c: {latitude:c.latitude, longitude:c.longitude}, t: p.timestamp};
   mapPos(c.latitude, c.longitude);
   if (T.on && T.id && T.dist - T.lastPt >= 25) { T.pts.push([+c.latitude.toFixed(5), +c.longitude.toFixed(5), Math.round(T.dist), Math.round(T.asc), Math.round(T.desc)]); T.lastPt = T.dist; }
