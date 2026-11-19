@@ -91,6 +91,7 @@ label input,label select{width:110px;padding:8px;border-radius:10px;border:1px s
   </div>
   <p id="wh" class="cap">% según la app de Segway</p>
   <p id="gps" class="cap">GPS apagado. Toca Iniciar viaje.</p>
+  <p id="dbg" class="cap">v2 · sin lecturas todavía</p>
   <div id="sum" class="card" hidden></div>
   <div id="map" class="mapc"></div>
   <div id="prof" class="card" hidden></div>
@@ -127,11 +128,11 @@ label input,label select{width:110px;padding:8px;border-radius:10px;border:1px s
     <label>Reserva (%)<input id="res" type="number" inputmode="numeric" value="5"></label>
     <label>Consumo inicial (Wh/km)<input id="base" type="number" inputmode="decimal" step="0.5" value="8"></label>
     <label>Avisos por voz<input id="voice" type="checkbox" checked style="width:auto"></label>
-    <label>Modo reloj (pantalla apagada)<input id="watch" type="checkbox" style="width:auto"></label>
-    <p class="note">Reproduce un audio casi inaudible para que el celular siga midiendo con la pantalla apagada, y publica los datos en Reproduciendo ahora, que puedes ver en el Apple Watch. Es experimental: puede pausar tu música y gasta más batería del celular.</p>
+    <div hidden><label>Modo reloj (pantalla apagada)<input id="watch" type="checkbox" style="width:auto"></label>
+    <p class="note">Reproduce un audio casi inaudible para que el celular siga midiendo con la pantalla apagada, y publica los datos en Reproduciendo ahora, que puedes ver en el Apple Watch. Es experimental: puede pausar tu música y gasta más batería del celular.</p></div>
     <label>Mostrar mapa<input id="mapOn" type="checkbox" checked style="width:auto"></label>
-    <label>Mezclar con mi música (experimental)<input id="mix" type="checkbox" style="width:auto"></label>
-    <p class="note">Con el Modo reloj activo, intenta que el audio silencioso de la app no pause tu música. Depende de la versión de iOS: pruébalo con un recorrido corto.</p>
+    <div hidden><label>Mezclar con mi música (experimental)<input id="mix" type="checkbox" style="width:auto"></label>
+    <p class="note">Con el Modo reloj activo, intenta que el audio silencioso de la app no pause tu música. Depende de la versión de iOS: pruébalo con un recorrido corto.</p></div>
     <label>Aviso por voz cada (km, 0 = no)<input id="kmEvery" type="number" inputmode="decimal" value="5"></label>
     <label>Alerta de velocidad (km/h, 0 = no)<input id="vLim" type="number" inputmode="decimal" value="0"></label>
     <label>Voz<select id="voiceSel" style="width:170px"></select></label>
@@ -166,6 +167,7 @@ label input,label select{width:110px;padding:8px;border-radius:10px;border:1px s
 const $ = id => document.getElementById(id);
 const S = {cap:187.2, res:5, base:8, voice:true, map:true, kmEvery:5, voiceName:'', rate:0.95};
 try { Object.assign(S, JSON.parse(localStorage.getItem('mp-settings') || '{}')); } catch(e) {}
+S.watch = false; S.mix = false;
 const T = {on:false, dist:0, mov:0, pct:100, startPct:100, log:[], spd:0, last:null, watch:null, lock:null, said:{}, dir:S.dir || 'otro', asc:0, desc:0, alt:null, altRef:null, id:null, max:0, pts:[], lastPt:0, ri:0};
 
 function save(){ try { localStorage.setItem('mp-settings', JSON.stringify(S)); } catch(e) {} }
@@ -245,19 +247,20 @@ function setPct(v){
 
 function onPos(p){
   const c = p.coords;
-  if (c.accuracy > 30) { $('gps').textContent = 'Señal GPS débil (±' + Math.round(c.accuracy) + ' m)'; return; }
+  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v2 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
+  if (c.accuracy > 60) { $('gps').textContent = 'Señal GPS débil (±' + Math.round(c.accuracy) + ' m)'; return; }
   const prev = T.last, dt = prev ? (p.timestamp - prev.t) / 1000 : 0;
   if (prev && dt < 0.8 && c.speed == null) return;
   $('gps').textContent = 'GPS activo (±' + Math.round(c.accuracy) + ' m)';
   const d = prev ? hav(prev.c, c) : 0;
-  let v;
+  T.buf = (T.buf || []).concat([{c:{latitude:c.latitude, longitude:c.longitude}, t:p.timestamp}]).filter(x => p.timestamp - x.t <= 6000);
+  let v = 0;
   if (c.speed != null && c.speed >= 0) v = c.speed * 3.6;
-  else if (prev) v = d > Math.max(3, c.accuracy) ? d / dt * 3.6 : 0;
-  else v = 0;
+  else { const o = T.buf[0], tt = (p.timestamp - o.t) / 1000; if (tt >= 2) { const dd = hav(o.c, c); v = dd > 3 ? dd / tt * 3.6 : 0; } }
   if (v > 60) return;
-  T.spd = 0.6 * T.spd + 0.4 * v; if (T.spd < 2) T.spd = 0;
+  if (v < 1.5) T.spd = 0; else T.spd = T.spd ? 0.6 * T.spd + 0.4 * v : v;
   if (T.spd > T.max) T.max = T.spd;
-  const moving = T.spd >= 2;
+  const moving = T.spd >= 1.5;
   if (prev && moving && d >= 1 && d < 200 && dt < 15) { T.dist += d; T.mov += dt; }
   if (c.altitude != null && moving && (c.altitudeAccuracy == null || c.altitudeAccuracy <= 15)) {
     T.alt = T.alt == null ? c.altitude : 0.8 * T.alt + 0.2 * c.altitude;
@@ -274,16 +277,20 @@ function onPos(p){
 async function start(){
   if (!('geolocation' in navigator)) { $('gps').textContent = 'Este navegador no ofrece GPS.'; return; }
   if (!T.log.length) { T.startPct = T.pct; T.log.push({d:0, pct:T.pct}); }
-  T.id = T.id || Date.now();
+  T.id = T.id || Date.now(); T.n = 0; T.buf = [];
   T.on = true; T.last = null; $('go').textContent = 'Pausar'; $('sum').hidden = true;
   if (S.watch) watchOn();
   startSay();
   $('gps').textContent = 'Buscando señal GPS…';
-  T.watch = navigator.geolocation.watchPosition(onPos,
-    e => { $('gps').textContent = e.code === 1 ? 'Permiso de ubicación denegado. Actívalo en el navegador.' : 'No se pudo leer el GPS.'; },
-    {enableHighAccuracy:true, maximumAge:1000, timeout:15000});
+  startWatch();
   try { T.lock = await navigator.wakeLock.request('screen'); } catch(e) {}
   
+}
+function startWatch(){
+  try { if (T.watch != null) navigator.geolocation.clearWatch(T.watch); } catch(e) {}
+  T.watch = navigator.geolocation.watchPosition(onPos,
+    e => { $('gps').textContent = e.code === 1 ? 'Permiso de ubicación denegado. Actívalo en el navegador.' : e.code === 3 ? 'Esperando señal GPS…' : 'No se pudo leer el GPS.'; },
+    {enableHighAccuracy:true, maximumAge:0, timeout:60000});
 }
 function pause(){
   T.on = false; T.spd = 0; $('go').textContent = 'Reanudar'; watchOff();
@@ -534,6 +541,8 @@ $('mapOn').checked = S.map !== false; $('map').hidden = S.map === false;
 $('mapOn').onchange = e => { S.map = e.target.checked; save(); $('map').hidden = !S.map; if (S.map) { initMap(); setTimeout(() => MAP && MAP.invalidateSize(), 80); } };
 initMap();
 addEventListener('pagehide', saveTrip);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && T.on) { startWatch(); try { navigator.wakeLock.request('screen').then(l => { T.lock = l; }).catch(() => {}); } catch(e) {} } });
+setInterval(() => { if (T.on && T.last && Date.now() - T.last.t > 4000 && T.spd) { T.spd = 0; render(); } }, 1000);
 renderHist();
 render();
 </script>
