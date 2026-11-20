@@ -138,6 +138,9 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
 .me b{position:absolute;left:50%;top:50%;width:0;height:0;margin:-11px 0 0 -8px;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:20px solid #22d3ee;filter:drop-shadow(0 0 5px #22d3ee)}
 @keyframes pulse{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.5);opacity:0}}
 @media (prefers-reduced-motion:reduce){.me::before{animation:none}}
+.maplibregl-marker.me{position:absolute}
+.maplibregl-ctrl-attrib{background:rgba(5,10,18,.6)!important;color:#7f99ad!important;font-size:10px}.maplibregl-ctrl-attrib a{color:#7f99ad!important}
+#map{height:300px}
 </style>
 </head>
 <body>
@@ -164,7 +167,7 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
   </div>
   <p id="wh" class="cap">% según la app de Segway</p>
   <p id="gps" class="cap">GPS apagado. Toca Iniciar viaje.</p>
-  <p id="dbg" class="cap">v10 · sin lecturas todavía</p>
+  <p id="dbg" class="cap">v11 · sin lecturas todavía</p>
 
   <div class="seg" id="dir" role="group" aria-label="Dirección del viaje">
     <button data-d="ida">Ida</button><button data-d="vuelta">Vuelta</button><button data-d="otro">Otra ruta</button>
@@ -202,9 +205,10 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
     <label>Velocidad de la voz<input id="rate" type="range" min="0.7" max="1.2" step="0.05" style="width:140px"></label>
     <label>Probar la voz<button id="vtest" type="button">Escuchar</button></label>
     <p class="note">La app usa las voces instaladas en tu iPhone. Para una voz más natural, descarga una que diga Premium o Mejorada en Ajustes, Accesibilidad, Contenido hablado, Voces, Español. Luego vuelve aquí y elígela.</p>
+    <h3 class="gh">Mapa</h3><label>Estilo del mapa<select id="mapStyle" style="width:150px"><option value="dark">Oscuro 3D</option><option value="sat">Satélite</option><option value="light">Claro 3D</option></select></label><label>Vista inclinada al rodar<input id="map3d" type="checkbox" checked style="width:auto"></label>
     <h3 class="gh">Pantalla</h3><label>Vista de carretera al iniciar<input id="roadOn" type="checkbox" checked style="width:auto"></label><label>Mostrar mapa<input id="mapOn" type="checkbox" checked style="width:auto"></label><label>Tema<button id="theme" type="button">Cambiar</button></label>
     <p class="note">El consumo inicial es un valor de partida: ajústalo con tus datos. A medida que bajas de porcentaje y avanzas, la app lo reemplaza por tu consumo real de los últimos 3 km. Actualiza el % en las paradas, no en marcha.</p>
-    <p class="note">Privacidad: tu ubicación se procesa solo en este celular. La app no tiene cuentas ni cookies y no envía tu ubicación ni tus viajes a ningún servidor. Si el mapa está activado, tu celular descarga la librería del mapa (cdnjs) y los mosaicos del mapa (CARTO y OpenStreetMap), y esos servicios pueden ver tu dirección IP y la zona que consultas; desactiva el mapa en Ajustes para evitarlo. Solo guarda tus ajustes y viajes en este navegador, y puedes borrarlos en Historial.</p>
+    <p class="note">Privacidad: tu ubicación se procesa solo en este celular. La app no tiene cuentas ni cookies y no envía tu ubicación ni tus viajes a ningún servidor. Si el mapa está activado, tu celular descarga la librería del mapa (jsDelivr o cdnjs) y los mosaicos del mapa (CARTO y OpenStreetMap, o Esri si eliges satélite), y esos servicios pueden ver tu dirección IP y la zona que consultas; desactiva el mapa en Ajustes para evitarlo. Solo guarda tus ajustes y viajes en este navegador, y puedes borrarlos en Historial.</p>
     <p class="note">La autonomía y la potencia son estimaciones y no reemplazan el indicador de batería de la patineta.</p>
   </details>
 <details class="t-hist" open><summary>Historial</summary>
@@ -315,7 +319,7 @@ function setPct(v, auto){
 
 function onPos(p){
   const c = p.coords;
-  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v10 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
+  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v11 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
   if (c.accuracy > 60) { $('gps').textContent = 'Señal GPS débil (±' + Math.round(c.accuracy) + ' m)'; return; }
   const prev = T.last, dt = prev ? (p.timestamp - prev.t) / 1000 : 0;
   if (prev && dt < 0.8 && c.speed == null) return;
@@ -368,7 +372,7 @@ function pause(){
   saveTrip(); $('gps').textContent = 'En pausa.'; render();
 }
 $('go').onclick = () => T.on ? pause() : start();
-$('reset').onclick = () => { if (T.on) pause(); Object.assign(T, {dist:0, mov:0, log:[], said:{}, startPct:T.pct, spd:0, id:null, asc:0, desc:0, alt:null, altRef:null, max:0, pts:[], lastPt:0, ri:0}); if (TR) TR.setLatLngs([]); $('go').textContent = 'Iniciar viaje'; $('gps').textContent = 'Viaje reiniciado.'; document.body.classList.remove('road-on'); RD.mode = 'rest'; render(); };
+$('reset').onclick = () => { if (T.on) pause(); Object.assign(T, {dist:0, mov:0, log:[], said:{}, startPct:T.pct, spd:0, id:null, asc:0, desc:0, alt:null, altRef:null, max:0, pts:[], lastPt:0, ri:0}); trackClear(); $('go').textContent = 'Iniciar viaje'; $('gps').textContent = 'Viaje reiniciado.'; document.body.classList.remove('road-on'); RD.mode = 'rest'; render(); };
 let finTimer = 0;
 function showSummary(rows, note, rt, dir){
   const el = $('sum'); el.textContent = '';
@@ -396,7 +400,7 @@ function finish(){
   const rt = T.pts.length > 10 ? {pts:T.pts.slice()} : null;
   showSummary(rows, T.dist >= 200 ? 'Guardado en el historial (' + DL[T.dir] + ').' : 'Viaje muy corto: no se guardó en el historial.', rt, T.dir);
   Object.assign(T, {dist:0, mov:0, log:[], said:{}, startPct:T.pct, spd:0, id:null, asc:0, desc:0, alt:null, altRef:null, max:0, pts:[], lastPt:0, ri:0});
-  if (TR) TR.setLatLngs([]);
+  trackClear();
   $('go').textContent = 'Iniciar viaje'; $('gps').textContent = 'Viaje finalizado. GPS apagado.'; render();
   say('Viaje finalizado. Recorriste ' + km.toFixed(1).replace('.', ',') + ' kilómetros en ' + (avg > 0 ? Math.round(km / avg * 60) : 0) + ' minutos. Batería al ' + T.pct + ' por ciento.');
 }
@@ -480,7 +484,7 @@ $('clrAll').onclick = () => {
 };
 let MAP = null, MK = null, TR = null, RL = null, MAPINIT = false;
 let RT = {}; try { RT = JSON.parse(localStorage.getItem('mp-routes') || '{}'); } catch(e) {}
-function drawRoute(){ drawProfile(); if (!RL) return; const r = RT[T.dir]; RL.setLatLngs(r ? r.pts.map(q => [q[0], q[1]]) : []); }
+function drawRoute(){ drawProfile(); if (GLM) { glRef(); return; } if (!RL) return; const r = RT[T.dir]; RL.setLatLngs(r ? r.pts.map(q => [q[0], q[1]]) : []); }
 function kmAlert(){
   const k = S.kmEvery; if (!k || !T.on) return;
   const n = Math.floor(T.dist / 1000 / k); if (n < 1 || T.said['k' + n]) return; T.said['k' + n] = 1;
@@ -589,7 +593,7 @@ function loadLeaflet(cb){
   const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'; document.head.appendChild(l);
   const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'; s.onload = cb; document.head.appendChild(s);
 }
-function initMap(){
+function initLeaflet(){
   if (MAP || MAPINIT || !S.map) return; MAPINIT = true;
   loadLeaflet(() => { try {
     const c0 = [6.2442, -75.5812];
@@ -607,6 +611,7 @@ function setTiles(){ try {
   TL = L.tileLayer('https://{s}.basemaps.cartocdn.com/' + (dark ? 'dark_all' : 'light_all') + '/{z}/{x}/{y}{r}.png', {subdomains:'abcd', maxZoom:20, attribution:'© OpenStreetMap © CARTO'}).addTo(MAP); TL.bringToBack();
 } catch(e) {} }
 function mapPos(lat, lon, hd){ try {
+  if (GLM) { glFix(lat, lon, hd); return; }
   if (!MAP || !MK) return;
   const ll = [lat, lon]; MK.setLatLng(ll); if (T.on) TR.addLatLng(ll);
   const el = MK.getElement(); if (el && el.firstChild && hd != null && !isNaN(hd) && T.spd > 2) el.firstChild.style.transform = 'rotate(' + hd + 'deg)';
@@ -614,7 +619,67 @@ function mapPos(lat, lon, hd){ try {
   MAP.setView(ll, z, {animate:true, duration:.8});
 } catch(e) {} }
 $('mapOn').checked = S.map !== false; $('map').hidden = S.map === false;
-$('mapOn').onchange = e => { S.map = e.target.checked; save(); $('map').hidden = !S.map; if (S.map) { initMap(); setTimeout(() => MAP && MAP.invalidateSize(), 80); } };
+$('mapOn').onchange = e => { S.map = e.target.checked; save(); $('map').hidden = !S.map; if (S.map) { initMap(); setTimeout(() => { if (MAP) MAP.invalidateSize(); if (GLM) GLM.resize(); }, 80); } };
+let GLM = null, GM = null; const TC = [], G = {pos:null, tgt:null, tb:0, br:0, pi:0, z:16, last:0, fr:0, free:0};
+const glLine = c => ({type:'Feature', geometry:{type:'LineString', coordinates:c.length > 1 ? c : []}});
+const refCoords = () => RT[T.dir] ? RT[T.dir].pts.map(q => [q[1], q[0]]) : [];
+function glStyle(){
+  const st = S.mapStyle || 'dark';
+  if (st === 'sat') return {version:8, sources:{sat:{type:'raster', tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], tileSize:256, maxzoom:19, attribution:'Tiles © Esri — Maxar, Earthstar Geographics'}}, layers:[{id:'sat', type:'raster', source:'sat'}]};
+  return 'https://basemaps.cartocdn.com/gl/' + (st === 'light' ? 'positron' : 'dark-matter') + '-gl-style/style.json';
+}
+function loadGL(cb){
+  if (window.maplibregl) return cb(true);
+  const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css'; document.head.appendChild(l);
+  const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'; s.onload = () => cb(!!window.maplibregl); s.onerror = () => cb(false); document.head.appendChild(s);
+}
+function initMap(){
+  if (MAP || GLM || MAPINIT || !S.map) return;
+  if (S.gl === false) return initLeaflet();
+  MAPINIT = true;
+  loadGL(ok => { if (ok) { try { glInit(); return; } catch(e) {} } MAPINIT = false; initLeaflet(); });
+}
+function glInit(){
+  const m = GLM = new maplibregl.Map({container:'map', style:glStyle(), center:[-75.5812, 6.2442], zoom:15, attributionControl:{compact:true}, cooperativeGestures:true, fadeDuration:0,
+    locale:{'CooperativeGesturesHandler.MobileHelpText':'Usa dos dedos para mover el mapa', 'CooperativeGesturesHandler.WindowsHelpText':'Usa Ctrl + rueda para mover el mapa', 'CooperativeGesturesHandler.MacHelpText':'Usa ⌘ + rueda para mover el mapa'}});
+  const el = document.createElement('div'); el.className = 'me'; el.innerHTML = '<b></b>';
+  GM = new maplibregl.Marker({element:el, rotationAlignment:'map', pitchAlignment:'map'}).setLngLat([-75.5812, 6.2442]).addTo(m);
+  m.on('style.load', glLayers); m.on('dragstart', () => { G.free = Date.now() + 8000; });
+  if (T.last) mapPos(T.last.c.latitude, T.last.c.longitude);
+  requestAnimationFrame(glLoop);
+}
+function glLayers(){ try {
+  const m = GLM, A = '#22d3ee';
+  m.addSource('ref', {type:'geojson', data:glLine(refCoords())}); m.addSource('trk', {type:'geojson', data:glLine(TC)});
+  m.addLayer({id:'ref', type:'line', source:'ref', paint:{'line-color':'#8b95ab', 'line-width':3, 'line-dasharray':[2, 2]}});
+  m.addLayer({id:'trk-g', type:'line', source:'trk', layout:{'line-cap':'round', 'line-join':'round'}, paint:{'line-color':A, 'line-width':11, 'line-blur':7, 'line-opacity':.45}});
+  m.addLayer({id:'trk', type:'line', source:'trk', layout:{'line-cap':'round', 'line-join':'round'}, paint:{'line-color':A, 'line-width':4}});
+  const b = (m.getStyle().layers || []).find(l => l['source-layer'] === 'building' && l.type === 'fill');
+  if (b) m.addLayer({id:'b3d', type:'fill-extrusion', source:b.source, 'source-layer':'building', minzoom:14, paint:{'fill-extrusion-color':S.mapStyle === 'light' ? '#d5e1e8' : '#12364d', 'fill-extrusion-height':['coalesce', ['get', 'render_height'], ['get', 'height'], 8], 'fill-extrusion-base':['coalesce', ['get', 'render_min_height'], 0], 'fill-extrusion-opacity':.85}});
+} catch(e) {} }
+function glRef(){ try { const s = GLM.getSource('ref'); if (s) s.setData(glLine(refCoords())); } catch(e) {} }
+function glTrack(){ try { const s = GLM.getSource('trk'); if (s) s.setData(glLine(TC)); } catch(e) {} }
+function trackClear(){ TC.length = 0; if (TR) TR.setLatLngs([]); if (GLM) glTrack(); }
+function glFix(lat, lon, hd){
+  G.tgt = [lon, lat]; if (!G.pos) G.pos = [lon, lat];
+  if (hd != null && !isNaN(hd) && T.spd > 3) G.tb = hd;
+  if (T.on) { TC.push([lon, lat]); glTrack(); }
+}
+function glLoop(ts){
+  requestAnimationFrame(glLoop);
+  const dt = G.last ? Math.min(.1, (ts - G.last) / 1000) : 0; G.last = ts;
+  if (!GLM || !G.tgt || $('map').hidden) return;
+  const k = 1 - Math.exp(-dt * 4);
+  G.pos[0] += (G.tgt[0] - G.pos[0]) * k; G.pos[1] += (G.tgt[1] - G.pos[1]) * k;
+  G.br += (((G.tb - G.br + 540) % 360) - 180) * (1 - Math.exp(-dt * 2.5));
+  try { GM.setLngLat(G.pos); GM.setRotation(G.tb); } catch(e) {}
+  if (++G.fr % 2 || G.free > Date.now()) return;
+  const d3 = S.map3d !== false && T.on, kk = 1 - Math.exp(-dt * 6);
+  G.pi += ((d3 ? 58 : 0) - G.pi) * kk; G.z += ((d3 ? (T.spd < 6 ? 17.6 : T.spd > 22 ? 16.4 : 17) : 16) - G.z) * kk;
+  try { GLM.jumpTo({center:G.pos, bearing:d3 ? G.br : 0, pitch:G.pi, zoom:G.z, padding:{top:d3 ? Math.round($('map').clientHeight * .35) : 0, bottom:0, left:0, right:0}}); } catch(e) {}
+}
+$('mapStyle').value = S.mapStyle || 'dark'; $('mapStyle').onchange = e => { S.mapStyle = e.target.value; save(); if (GLM) GLM.setStyle(glStyle()); };
+$('map3d').checked = S.map3d !== false; $('map3d').onchange = e => { S.map3d = e.target.checked; save(); };
 initMap();
 function menuOpen(o){ $('menu').hidden = !o; document.body.style.overflow = o ? 'hidden' : ''; if (o) $('menu').scrollTop = 0; }
 $('gear').onclick = () => menuOpen(true); $('menuX').onclick = () => menuOpen(false);
@@ -725,7 +790,7 @@ function warmOn(){
     if (T.on) return;
     const a = Math.round(p.coords.accuracy);
     $('gps').textContent = a <= 20 ? 'Señal GPS buena (±' + a + ' m). Listo para iniciar.' : 'Señal GPS ' + (a <= 60 ? 'regular' : 'débil') + ' (±' + a + ' m). Espera al aire libre.';
-    $('dbg').textContent = 'v10 · en espera · ±' + a + ' m';
+    $('dbg').textContent = 'v11 · en espera · ±' + a + ' m';
     mapPos(p.coords.latitude, p.coords.longitude);
   }, e => { $('gps').textContent = e.code === 1 ? 'Permiso de ubicación denegado. Actívalo en el navegador.' : 'Buscando señal GPS…'; },
   {enableHighAccuracy:true, maximumAge:0, timeout:60000});
