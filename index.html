@@ -129,6 +129,15 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
 :root:not([data-theme="light"]) #go{letter-spacing:.14em;text-transform:uppercase}
 #road{display:none;width:calc(100% + 32px);margin:0 -16px;height:280px;border:0;border-radius:0;background:transparent;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 88%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 88%,transparent 100%)}
 .road-on #road{display:block}.road-on .gauge{display:none}
+#map{height:280px}
+.leaflet-tile-pane{filter:none!important}
+.leaflet-overlay-pane path{filter:drop-shadow(0 0 4px rgba(34,211,238,.8))}
+.leaflet-control-attribution{background:rgba(5,10,18,.6)!important;color:#7f99ad!important;font-size:9px}.leaflet-control-attribution a{color:#7f99ad!important}
+.me{width:28px;height:28px;position:relative}
+.me::before{content:"";position:absolute;inset:0;border-radius:50%;background:rgba(34,211,238,.28);animation:pulse 2s ease-out infinite}
+.me b{position:absolute;left:50%;top:50%;width:0;height:0;margin:-11px 0 0 -8px;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:20px solid #22d3ee;filter:drop-shadow(0 0 5px #22d3ee)}
+@keyframes pulse{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+@media (prefers-reduced-motion:reduce){.me::before{animation:none}}
 </style>
 </head>
 <body>
@@ -155,7 +164,7 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
   </div>
   <p id="wh" class="cap">% según la app de Segway</p>
   <p id="gps" class="cap">GPS apagado. Toca Iniciar viaje.</p>
-  <p id="dbg" class="cap">v9 · sin lecturas todavía</p>
+  <p id="dbg" class="cap">v10 · sin lecturas todavía</p>
 
   <div class="seg" id="dir" role="group" aria-label="Dirección del viaje">
     <button data-d="ida">Ida</button><button data-d="vuelta">Vuelta</button><button data-d="otro">Otra ruta</button>
@@ -189,12 +198,13 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
     <label>Aviso por voz cada (km, 0 = no)<input id="kmEvery" type="number" inputmode="decimal" value="5"></label>
     <label>Alerta de velocidad (km/h, 0 = no)<input id="vLim" type="number" inputmode="decimal" value="0"></label>
     <label>Voz<select id="voiceSel" style="width:170px"></select></label>
+    <p id="vq" class="note"></p>
     <label>Velocidad de la voz<input id="rate" type="range" min="0.7" max="1.2" step="0.05" style="width:140px"></label>
     <label>Probar la voz<button id="vtest" type="button">Escuchar</button></label>
     <p class="note">La app usa las voces instaladas en tu iPhone. Para una voz más natural, descarga una que diga Premium o Mejorada en Ajustes, Accesibilidad, Contenido hablado, Voces, Español. Luego vuelve aquí y elígela.</p>
     <h3 class="gh">Pantalla</h3><label>Vista de carretera al iniciar<input id="roadOn" type="checkbox" checked style="width:auto"></label><label>Mostrar mapa<input id="mapOn" type="checkbox" checked style="width:auto"></label><label>Tema<button id="theme" type="button">Cambiar</button></label>
     <p class="note">El consumo inicial es un valor de partida: ajústalo con tus datos. A medida que bajas de porcentaje y avanzas, la app lo reemplaza por tu consumo real de los últimos 3 km. Actualiza el % en las paradas, no en marcha.</p>
-    <p class="note">Privacidad: tu ubicación se procesa solo en este celular. La app no tiene cuentas ni cookies y no envía tu ubicación ni tus viajes a ningún servidor. Si el mapa está activado, tu celular descarga la librería del mapa (cdnjs) y los mosaicos de OpenStreetMap, y esos servicios pueden ver tu dirección IP y la zona que consultas; desactiva el mapa en Ajustes para evitarlo. Solo guarda tus ajustes y viajes en este navegador, y puedes borrarlos en Historial.</p>
+    <p class="note">Privacidad: tu ubicación se procesa solo en este celular. La app no tiene cuentas ni cookies y no envía tu ubicación ni tus viajes a ningún servidor. Si el mapa está activado, tu celular descarga la librería del mapa (cdnjs) y los mosaicos del mapa (CARTO y OpenStreetMap), y esos servicios pueden ver tu dirección IP y la zona que consultas; desactiva el mapa en Ajustes para evitarlo. Solo guarda tus ajustes y viajes en este navegador, y puedes borrarlos en Historial.</p>
     <p class="note">La autonomía y la potencia son estimaciones y no reemplazan el indicador de batería de la patineta.</p>
   </details>
 <details class="t-hist" open><summary>Historial</summary>
@@ -274,12 +284,18 @@ function loadVoices(){
   const sel = $('voiceSel'); if (!sel) return; sel.textContent = '';
   const o0 = document.createElement('option'); o0.value = ''; o0.textContent = 'Automática (la mejor)'; sel.appendChild(o0);
   VOX.forEach(v => { const o = document.createElement('option'); o.value = v.voiceURI; o.textContent = v.name + ' (' + v.lang + ')'; sel.appendChild(o); });
-  sel.value = S.voiceName || '';
+  sel.value = S.voiceName || ''; voiceHint();
+}
+function voiceHint(){
+  const v = (S.voiceName && VOX.find(x => x.voiceURI === S.voiceName)) || VOX[0], el = $('vq'); if (!el) return;
+  const good = v && /premium|enhanced|mejorad|neural|siri/i.test(v.name + ' ' + (v.voiceURI || ''));
+  el.textContent = !v ? 'No se encontró ninguna voz en español en este iPhone.' : good ? 'Voz en uso: ' + v.name + ' (buena calidad).' :
+    'Voz en uso: ' + v.name + ' (básica, por eso suena robótica). Descarga una más natural en Ajustes del iPhone, Accesibilidad, Contenido hablado, Voces, Español: elige una "Mejorada" o "Premium". Luego vuelve aquí y selecciónala.';
 }
 function say(t, force){
   if ((!S.voice && !force) || !('speechSynthesis' in window)) return;
   try {
-    const u = new SpeechSynthesisUtterance(t);
+    const u = new SpeechSynthesisUtterance(t.replace(/:/g, ','));
     const v = (S.voiceName && VOX.find(x => x.voiceURI === S.voiceName)) || VOX[0];
     if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'es-CO';
     u.rate = S.rate || 0.95; u.pitch = 1; speechSynthesis.speak(u);
@@ -299,7 +315,7 @@ function setPct(v, auto){
 
 function onPos(p){
   const c = p.coords;
-  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v9 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
+  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v10 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
   if (c.accuracy > 60) { $('gps').textContent = 'Señal GPS débil (±' + Math.round(c.accuracy) + ' m)'; return; }
   const prev = T.last, dt = prev ? (p.timestamp - prev.t) / 1000 : 0;
   if (prev && dt < 0.8 && c.speed == null) return;
@@ -320,7 +336,7 @@ function onPos(p){
     if (T.altRef == null) T.altRef = T.alt;
     else if (Math.abs(T.alt - T.altRef) >= 6) { if (T.alt > T.altRef) T.asc += T.alt - T.altRef; else T.desc += T.altRef - T.alt; T.altRef = T.alt; } }
   T.last = {c: {latitude:c.latitude, longitude:c.longitude}, t: p.timestamp};
-  mapPos(c.latitude, c.longitude);
+  mapPos(c.latitude, c.longitude, c.heading);
   if (T.on && T.id && T.dist - T.lastPt >= 25) { T.pts.push([+c.latitude.toFixed(5), +c.longitude.toFixed(5), Math.round(T.dist), Math.round(T.asc), Math.round(T.desc)]); T.lastPt = T.dist; }
   kmAlert();
   speedAlert();
@@ -424,7 +440,7 @@ function nowPlaying(rangeKm, avg, kmh){
 $('watch').checked = !!S.watch;
 $('watch').onchange = e => { S.watch = e.target.checked; save(); if (T.on) { S.watch ? watchOn() : watchOff(); } };
 if (S.theme) document.documentElement.dataset.theme = S.theme;
-$('theme').onclick = () => { const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'light' ? 'dark' : 'light'; S.theme = r.dataset.theme; save(); };
+$('theme').onclick = () => { const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'light' ? 'dark' : 'light'; S.theme = r.dataset.theme; save(); setTiles(); };
 
 let H = []; try { H = JSON.parse(localStorage.getItem('mp-trips') || '[]'); } catch(e) {}
 const DL = {ida:'ida', vuelta:'vuelta', otro:'otra ruta'};
@@ -499,7 +515,7 @@ async function exportCsv(){
   const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
 }
 if ('speechSynthesis' in window) { speechSynthesis.onvoiceschanged = loadVoices; loadVoices(); }
-$('voiceSel').onchange = e => { S.voiceName = e.target.value; save(); };
+$('voiceSel').onchange = e => { S.voiceName = e.target.value; save(); voiceHint(); };
 $('rate').value = S.rate; $('rate').oninput = e => { S.rate = +e.target.value; save(); };
 $('vtest').onclick = () => say('Hola. Viaje iniciado. Batería al 80 por ciento. Autonomía estimada: 18 kilómetros.', true);
 let vAl = 0, PS = null;
@@ -578,18 +594,25 @@ function initMap(){
   loadLeaflet(() => { try {
     const c0 = [6.2442, -75.5812];
     MAP = L.map('map', {zoomControl:false}).setView(c0, 14);
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(MAP);
+    setTiles();
     RL = L.polyline([], {color:'#8b95ab', weight:4, dashArray:'6 8'}).addTo(MAP);
-    TR = L.polyline([], {color:'#5fa8ea', weight:5}).addTo(MAP); drawRoute();
-    MK = L.circleMarker(c0, {radius:8, color:'#fff', weight:3, fillColor:'#d4382c', fillOpacity:1}).addTo(MAP);
+    TR = L.polyline([], {color:'#22d3ee', weight:5, lineCap:'round'}).addTo(MAP); drawRoute();
+    MK = L.marker(c0, {icon: L.divIcon({className:'', html:'<div class="me"><b></b></div>', iconSize:[28, 28], iconAnchor:[14, 14]}), interactive:false, keyboard:false}).addTo(MAP);
     if (T.last) mapPos(T.last.c.latitude, T.last.c.longitude);
   } catch(e) {} });
 }
-function mapPos(lat, lon){
+let TL = null;
+function setTiles(){ try {
+  if (!MAP) return; const dark = document.documentElement.dataset.theme !== 'light'; if (TL) MAP.removeLayer(TL);
+  TL = L.tileLayer('https://{s}.basemaps.cartocdn.com/' + (dark ? 'dark_all' : 'light_all') + '/{z}/{x}/{y}{r}.png', {subdomains:'abcd', maxZoom:20, attribution:'© OpenStreetMap © CARTO'}).addTo(MAP); TL.bringToBack();
+} catch(e) {} }
+function mapPos(lat, lon, hd){ try {
   if (!MAP || !MK) return;
   const ll = [lat, lon]; MK.setLatLng(ll); if (T.on) TR.addLatLng(ll);
-  MAP.setView(ll, Math.max(MAP.getZoom(), 15), {animate:false});
-}
+  const el = MK.getElement(); if (el && el.firstChild && hd != null && !isNaN(hd) && T.spd > 2) el.firstChild.style.transform = 'rotate(' + hd + 'deg)';
+  let z = MAP.getZoom(); if (T.spd > 22) z = 15; else if (T.spd < 6) z = 17; z = Math.min(17, Math.max(15, z));
+  MAP.setView(ll, z, {animate:true, duration:.8});
+} catch(e) {} }
 $('mapOn').checked = S.map !== false; $('map').hidden = S.map === false;
 $('mapOn').onchange = e => { S.map = e.target.checked; save(); $('map').hidden = !S.map; if (S.map) { initMap(); setTimeout(() => MAP && MAP.invalidateSize(), 80); } };
 initMap();
@@ -702,7 +725,7 @@ function warmOn(){
     if (T.on) return;
     const a = Math.round(p.coords.accuracy);
     $('gps').textContent = a <= 20 ? 'Señal GPS buena (±' + a + ' m). Listo para iniciar.' : 'Señal GPS ' + (a <= 60 ? 'regular' : 'débil') + ' (±' + a + ' m). Espera al aire libre.';
-    $('dbg').textContent = 'v9 · en espera · ±' + a + ' m';
+    $('dbg').textContent = 'v10 · en espera · ±' + a + ' m';
     mapPos(p.coords.latitude, p.coords.longitude);
   }, e => { $('gps').textContent = e.code === 1 ? 'Permiso de ubicación denegado. Actívalo en el navegador.' : 'Buscando señal GPS…'; },
   {enableHighAccuracy:true, maximumAge:0, timeout:60000});
