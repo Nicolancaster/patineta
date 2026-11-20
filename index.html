@@ -102,18 +102,46 @@ main{position:relative}
 .sheet[hidden]{display:none}.sheet-in{max-width:520px;margin:0 auto}
 .sheet-h{display:flex;justify-content:space-between;align-items:center;margin:4px 0 6px}
 .sheet-h h2{margin:0;font-size:1.3rem}.sheet-h button{padding:10px 16px}
+:root:not([data-theme="light"]),:root[data-theme="dark"]{--bg:#050a12;--bgc:#050a12;--fg:#e6f4ff;--mut:#7f99ad;--card:rgba(12,24,40,.72);--line:rgba(56,189,248,.2);--ring:#0e3a4d;--track:#143049;--accent:#22d3ee;--bar:#0f7a8f;--warn:#fbbf24;--bad:#ff5d73;--ink:#eaffff;--b1:#0b2536;--b2:#08192a;--b3:#050f1c;--onacc:#001a22}
+
+.gh{margin:20px 0 2px;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+label{min-height:44px}
+label input[type=checkbox]{-webkit-appearance:none;appearance:none;width:48px!important;height:28px;padding:0;border:0;border-radius:14px;background:var(--track);position:relative;flex:none}
+label input[type=checkbox]::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .15s}
+label input[type=checkbox]:checked{background:var(--accent)}label input[type=checkbox]:checked::after{transform:translateX(20px)}
+.sheet{padding-top:0}.sheet-top{position:sticky;top:0;z-index:3;background:var(--bgc);padding:calc(env(safe-area-inset-top,0px) + 8px) 0 8px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}.tabs button{padding:10px 2px;font-size:.85rem}.tabs button.on{background:var(--accent);color:var(--onacc);font-weight:700}
+#menu summary{display:none}
+#menu details{display:none;background:none;border:0;box-shadow:none;padding:0;margin:0}
+#menu[data-tab="more"] details.more,#menu[data-tab="set"] details.t-set,#menu[data-tab="hist"] details.t-hist,#menu[data-tab="plan"] details.t-plan{display:block}
+:root:not([data-theme="light"]) body{background:radial-gradient(120% 55% at 50% -8%,#0d2a40 0,#050a12 62%),#050a12}
+:root:not([data-theme="light"]) #spd{color:var(--ink);text-shadow:0 0 18px rgba(34,211,238,.55)}
+:root:not([data-theme="light"]) .gl{color:var(--accent);letter-spacing:.3em;text-transform:uppercase;font-size:.72rem}
+:root:not([data-theme="light"]) #arc{filter:drop-shadow(0 0 6px var(--accent))}
+:root:not([data-theme="light"]) svg g[stroke]{stroke:var(--accent)}
+:root:not([data-theme="light"]) .wb{background:#08192a;border-color:var(--ring);box-shadow:0 0 12px rgba(34,211,238,.25)}
+:root:not([data-theme="light"]) .card,:root:not([data-theme="light"]) .range,:root:not([data-theme="light"]) #gps,:root:not([data-theme="light"]) #gear{background:var(--card);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+:root:not([data-theme="light"]) .card{border-radius:10px}
+:root:not([data-theme="light"]) .cl{text-transform:uppercase;font-size:.68rem;letter-spacing:.08em}
+:root:not([data-theme="light"]) .num{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+:root:not([data-theme="light"]) .fill{box-shadow:0 0 10px var(--accent)}
+:root:not([data-theme="light"]) button.primary{box-shadow:0 0 18px rgba(34,211,238,.4)}
+:root:not([data-theme="light"]) #go{letter-spacing:.14em;text-transform:uppercase}
+#road{display:none;width:calc(100% + 32px);margin:0 -16px;height:280px;border:0;border-radius:0;background:transparent;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 88%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 88%,transparent 100%)}
+.road-on #road{display:block}.road-on .gauge{display:none}
 </style>
 </head>
 <body>
 <main>
   <button id="gear" type="button" aria-label="Abrir menú"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.8 10.2L22.4 10.5L22.4 13.5L19.8 13.8L18.8 16.2L20.4 18.3L18.3 20.4L16.2 18.8L13.8 19.8L13.5 22.4L10.5 22.4L10.2 19.8L7.8 18.8L5.7 20.4L3.6 18.3L5.2 16.2L4.2 13.8L1.6 13.5L1.6 10.5L4.2 10.2L5.2 7.8L3.6 5.7L5.7 3.6L7.8 5.2L10.2 4.2L10.5 1.6L13.5 1.6L13.8 4.2L16.2 5.2L18.3 3.6L20.4 5.7L18.8 7.8Z M12 8.8a3.2 3.2 0 1 0 0 6.4a3.2 3.2 0 1 0 0-6.4Z" fill="currentColor" fill-rule="evenodd"/></svg></button>
+  <canvas id="road" aria-hidden="true"></canvas>
   <div class="gauge">
     <svg viewBox="0 0 300 300" aria-hidden="true">
       <defs><radialGradient id="ball" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#f2faff"/><stop offset=".6" stop-color="#c3e4fb"/><stop offset="1" stop-color="#9fcdf5"/></radialGradient></defs>
       <circle cx="150" cy="150" r="143" fill="none" stroke="var(--ring)" stroke-width="12"/>
       <circle cx="150" cy="150" r="118" fill="none" stroke="var(--track)" stroke-width="18" stroke-linecap="round" stroke-dasharray="556 741" transform="rotate(135 150 150)"/>
       <circle id="arc" cx="150" cy="150" r="118" fill="none" stroke="var(--accent)" stroke-width="18" stroke-linecap="round" stroke-dasharray="0 741" transform="rotate(135 150 150)"/>
-      <circle cx="150" cy="150" r="96" fill="url(#ball)"/><g stroke="var(--mut)" stroke-width="2" stroke-linecap="round" opacity=".55"><line x1="79.3" y1="220.7" x2="74.3" y2="225.7"/><line x1="50.6" y1="161.2" x2="43.7" y2="162.0"/><line x1="65.3" y1="96.8" x2="59.4" y2="93.1"/><line x1="117.0" y1="55.6" x2="114.7" y2="49.0"/><line x1="183.0" y1="55.6" x2="185.3" y2="49.0"/><line x1="234.7" y1="96.8" x2="240.6" y2="93.1"/><line x1="249.4" y1="161.2" x2="256.3" y2="162.0"/><line x1="220.7" y1="220.7" x2="225.7" y2="225.7"/></g>
+      <circle cx="150" cy="150" r="96" fill="url(#ball)"/><g stroke="var(--mut)" stroke-width="2" stroke-linecap="round" opacity=".55"><line x1="79.3" y1="220.7" x2="74.3" y2="225.7"/><line x1="50.6" y1="161.2" x2="43.7" y2="162.0"/><line x1="65.3" y1="96.8" x2="59.4" y2="93.1"/><line x1="117.0" y1="55.6" x2="114.7" y2="49.0"/><line x1="183.0" y1="55.6" x2="185.3" y2="49.0"/><line x1="234.7" y1="96.8" x2="240.6" y2="93.1"/><line x1="249.4" y1="161.2" x2="256.3" y2="162.0"/><line x1="220.7" y1="220.7" x2="225.7" y2="225.7"/></g><circle cx="150" cy="150" r="90" fill="none" stroke="var(--accent)" stroke-opacity=".28" stroke-dasharray="2 7"/>
     </svg>
     <div class="gv"><div class="gl">km / h</div><div id="spd" class="num">0.0</div></div>
     <div class="wb"><b id="w" class="num">0</b><span>W</span></div>
@@ -127,7 +155,7 @@ main{position:relative}
   </div>
   <p id="wh" class="cap">% según la app de Segway</p>
   <p id="gps" class="cap">GPS apagado. Toca Iniciar viaje.</p>
-  <p id="dbg" class="cap">v6 · sin lecturas todavía</p>
+  <p id="dbg" class="cap">v9 · sin lecturas todavía</p>
 
   <div class="seg" id="dir" role="group" aria-label="Dirección del viaje">
     <button data-d="ida">Ida</button><button data-d="vuelta">Vuelta</button><button data-d="otro">Otra ruta</button>
@@ -143,20 +171,19 @@ main{position:relative}
   <div id="map" class="mapc"></div>
   <div id="prof" class="card" hidden></div>
   <div class="cards"><div class="card"><div class="cv num"><span id="dist">0</span><small>km</small></div><div class="cl">Este trayecto</div></div><div class="card"><div class="cv num"><span id="mov">0</span><small></small></div><div class="cl">Duración de conducción</div></div><div class="card"><div class="cv num"><span id="rt">—</span><small>h:mm</small></div><div class="cl">Tiempo restante</div></div><div class="card"><div class="cv num"><span id="arr">—</span><small>%</small></div><div class="cl">Llegarás con</div></div></div>
-  <div id="menu" class="sheet" hidden><div class="sheet-in"><div class="sheet-h"><h2>Menú</h2><button id="menuX" type="button">Cerrar</button></div>
+  <div id="menu" class="sheet" hidden><div class="sheet-in"><div class="sheet-top"><div class="sheet-h"><h2>Menú</h2><button id="menuX" type="button">Cerrar</button></div><div class="tabs" id="tabs"><button type="button" data-t="more">Datos</button><button type="button" data-t="set">Ajustes</button><button type="button" data-t="hist">Historial</button><button type="button" data-t="plan">Carga</button></div></div>
   <details class="more" open><summary>Más datos del trayecto</summary><div class="cards"><div class="card"><div class="cv num"><span id="vmax">0</span><small>km/h</small></div><div class="cl">Velocidad máx.</div></div><div class="card"><div class="cv num"><span id="avg">0</span><small>km/h</small></div><div class="cl">Velocidad media</div></div><div class="card"><div class="cv num"><span id="rem">—</span><small>km</small></div><div class="cl">Falta de ruta</div></div><div class="card"><div class="cv num"><span id="used">0</span><small>Wh</small></div><div class="cl">Energía usada</div></div><div class="card"><div class="cv num"><span id="asc">0</span><small>m</small></div><div class="cl">Subida acumulada</div></div><div class="card"><div class="cv num"><span id="desc">0</span><small>m</small></div><div class="cl">Bajada acumulada</div></div></div></details>
-<details>
-    <summary>Ajustes</summary>
-    <label>Batería
+<details class="t-set" open><summary>Ajustes</summary>
+    <h3 class="gh">Batería</h3><label>Batería
       <select id="capSel"><option value="187.2">Interna (187 Wh)</option><option value="374.4">Con externa (374 Wh)</option><option value="custom">Otra…</option></select>
     </label>
     <label>Capacidad (Wh)<input id="cap" type="number" inputmode="decimal" value="187.2"></label>
     <label>Reserva (%)<input id="res" type="number" inputmode="numeric" value="5"></label>
     <label>Consumo inicial (Wh/km)<input id="base" type="number" inputmode="decimal" step="0.5" value="8"></label>
-    <label>Avisos por voz<input id="voice" type="checkbox" checked style="width:auto"></label>
+    <h3 class="gh">Avisos y voz</h3><label>Avisos por voz<input id="voice" type="checkbox" checked style="width:auto"></label>
     <div hidden><label>Modo reloj (pantalla apagada)<input id="watch" type="checkbox" style="width:auto"></label>
     <p class="note">Reproduce un audio casi inaudible para que el celular siga midiendo con la pantalla apagada, y publica los datos en Reproduciendo ahora, que puedes ver en el Apple Watch. Es experimental: puede pausar tu música y gasta más batería del celular.</p></div>
-    <label>Mostrar mapa<input id="mapOn" type="checkbox" checked style="width:auto"></label>
+    
     <div hidden><label>Mezclar con mi música (experimental)<input id="mix" type="checkbox" style="width:auto"></label>
     <p class="note">Con el Modo reloj activo, intenta que el audio silencioso de la app no pause tu música. Depende de la versión de iOS: pruébalo con un recorrido corto.</p></div>
     <label>Aviso por voz cada (km, 0 = no)<input id="kmEvery" type="number" inputmode="decimal" value="5"></label>
@@ -165,13 +192,12 @@ main{position:relative}
     <label>Velocidad de la voz<input id="rate" type="range" min="0.7" max="1.2" step="0.05" style="width:140px"></label>
     <label>Probar la voz<button id="vtest" type="button">Escuchar</button></label>
     <p class="note">La app usa las voces instaladas en tu iPhone. Para una voz más natural, descarga una que diga Premium o Mejorada en Ajustes, Accesibilidad, Contenido hablado, Voces, Español. Luego vuelve aquí y elígela.</p>
-    <label>Tema<button id="theme" type="button">Cambiar</button></label>
+    <h3 class="gh">Pantalla</h3><label>Vista de carretera al iniciar<input id="roadOn" type="checkbox" checked style="width:auto"></label><label>Mostrar mapa<input id="mapOn" type="checkbox" checked style="width:auto"></label><label>Tema<button id="theme" type="button">Cambiar</button></label>
     <p class="note">El consumo inicial es un valor de partida: ajústalo con tus datos. A medida que bajas de porcentaje y avanzas, la app lo reemplaza por tu consumo real de los últimos 3 km. Actualiza el % en las paradas, no en marcha.</p>
     <p class="note">Privacidad: tu ubicación se procesa solo en este celular. La app no tiene cuentas ni cookies y no envía tu ubicación ni tus viajes a ningún servidor. Si el mapa está activado, tu celular descarga la librería del mapa (cdnjs) y los mosaicos de OpenStreetMap, y esos servicios pueden ver tu dirección IP y la zona que consultas; desactiva el mapa en Ajustes para evitarlo. Solo guarda tus ajustes y viajes en este navegador, y puedes borrarlos en Historial.</p>
     <p class="note">La autonomía y la potencia son estimaciones y no reemplazan el indicador de batería de la patineta.</p>
   </details>
-<details>
-    <summary>Historial</summary>
+<details class="t-hist" open><summary>Historial</summary>
     <div id="chart"></div>
     <div id="hist" class="note">Aún no hay viajes guardados.</div>
     <p class="note">Los viajes se guardan al pausar. Con 2 km o más guardados en una dirección, la app usa tu consumo real de esa dirección como punto de partida.</p>
@@ -179,8 +205,7 @@ main{position:relative}
     <button id="clr" type="button">Borrar historial</button>
     <button id="clrAll" type="button">Borrar todos mis datos</button>
   </details>
-<details>
-    <summary>Planificador de carga</summary>
+<details class="t-plan" open><summary>Planificador de carga</summary>
     <label>Cargador (W)<input id="chW" type="number" inputmode="decimal"></label>
     <label>Recorrido de mañana (km, ida y vuelta)<input id="chKm" type="number" inputmode="decimal" step="0.5"></label>
     <label>Batería ahora (%)<input id="chNow" type="number" inputmode="numeric"></label>
@@ -274,7 +299,7 @@ function setPct(v, auto){
 
 function onPos(p){
   const c = p.coords;
-  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v6 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
+  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v9 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
   if (c.accuracy > 60) { $('gps').textContent = 'Señal GPS débil (±' + Math.round(c.accuracy) + ' m)'; return; }
   const prev = T.last, dt = prev ? (p.timestamp - prev.t) / 1000 : 0;
   if (prev && dt < 0.8 && c.speed == null) return;
@@ -305,7 +330,7 @@ function onPos(p){
 async function start(){
   if (!('geolocation' in navigator)) { $('gps').textContent = 'Este navegador no ofrece GPS.'; return; }
   if (!T.log.length) { T.startPct = T.pct; T.log.push({d:0, pct:T.pct}); }
-  T.id = T.id || Date.now(); T.n = 0; T.buf = []; T.mp = T.pct; T.md = T.dist; warmOff(); document.body.classList.add('riding');
+  T.id = T.id || Date.now(); T.n = 0; T.buf = []; T.mp = T.pct; T.md = T.dist; warmOff(); document.body.classList.add('riding'); if (S.road !== false) { document.body.classList.add('road-on'); RD.mode = 'ride'; roadStart(); }
   T.on = true; T.last = null; $('go').textContent = 'Pausar'; $('sum').hidden = true;
   if (S.watch) watchOn();
   startSay();
@@ -321,13 +346,13 @@ function startWatch(){
     {enableHighAccuracy:true, maximumAge:0, timeout:60000});
 }
 function pause(){
-  T.on = false; T.spd = 0; document.body.classList.remove('riding'); $('go').textContent = 'Reanudar'; watchOff();
+  T.on = false; T.spd = 0; document.body.classList.remove('riding'); RD.mode = 'rest'; $('go').textContent = 'Reanudar'; watchOff();
   if (T.watch != null) navigator.geolocation.clearWatch(T.watch);
   try { T.lock && T.lock.release(); } catch(e) {}
   saveTrip(); $('gps').textContent = 'En pausa.'; render();
 }
 $('go').onclick = () => T.on ? pause() : start();
-$('reset').onclick = () => { if (T.on) pause(); Object.assign(T, {dist:0, mov:0, log:[], said:{}, startPct:T.pct, spd:0, id:null, asc:0, desc:0, alt:null, altRef:null, max:0, pts:[], lastPt:0, ri:0}); if (TR) TR.setLatLngs([]); $('go').textContent = 'Iniciar viaje'; $('gps').textContent = 'Viaje reiniciado.'; render(); };
+$('reset').onclick = () => { if (T.on) pause(); Object.assign(T, {dist:0, mov:0, log:[], said:{}, startPct:T.pct, spd:0, id:null, asc:0, desc:0, alt:null, altRef:null, max:0, pts:[], lastPt:0, ri:0}); if (TR) TR.setLatLngs([]); $('go').textContent = 'Iniciar viaje'; $('gps').textContent = 'Viaje reiniciado.'; document.body.classList.remove('road-on'); RD.mode = 'rest'; render(); };
 let finTimer = 0;
 function showSummary(rows, note, rt, dir){
   const el = $('sum'); el.textContent = '';
@@ -345,6 +370,7 @@ function showSummary(rows, note, rt, dir){
 function finish(){
   if (!T.id && !T.on) { $('gps').textContent = 'No hay un viaje en curso.'; return; }
   if (T.on) pause(); else saveTrip();
+  RD.km = (T.dist / 1000).toFixed(1); if (document.body.classList.contains('road-on')) { RD.mode = 'bye'; RD.bt = 0; roadStart(); }
   const km = T.dist / 1000, drop = T.startPct - T.pct, wh = drop * S.cap / 100;
   const avg = T.mov > 0 ? T.dist / T.mov * 3.6 : 0;
   const rows = [['Distancia', km.toFixed(2) + ' km'], ['Tiempo en marcha', fmtH(T.mov) + ' h'], ['Velocidad media', avg.toFixed(1) + ' km/h'], ['Velocidad máx.', T.max.toFixed(0) + ' km/h'],
@@ -397,9 +423,8 @@ function nowPlaying(rangeKm, avg, kmh){
 }
 $('watch').checked = !!S.watch;
 $('watch').onchange = e => { S.watch = e.target.checked; save(); if (T.on) { S.watch ? watchOn() : watchOff(); } };
-$('theme').onclick = () => { const r = document.documentElement;
-  const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme:dark)').matches;
-  r.dataset.theme = dark ? 'light' : 'dark'; };
+if (S.theme) document.documentElement.dataset.theme = S.theme;
+$('theme').onclick = () => { const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'light' ? 'dark' : 'light'; S.theme = r.dataset.theme; save(); };
 
 let H = []; try { H = JSON.parse(localStorage.getItem('mp-trips') || '[]'); } catch(e) {}
 const DL = {ida:'ida', vuelta:'vuelta', otro:'otra ruta'};
@@ -572,6 +597,103 @@ function menuOpen(o){ $('menu').hidden = !o; document.body.style.overflow = o ? 
 $('gear').onclick = () => menuOpen(true); $('menuX').onclick = () => menuOpen(false);
 addEventListener('keydown', e => { if (e.key === 'Escape') menuOpen(false); });
 addEventListener('pagehide', saveTrip);
+
+const RD = {on:false, vis:0, trav:0, last:0, acc:'#22d3ee', mode:'rest', pose:1, ph:0, t:0, bt:0, wa:0, km:'0.0'};
+const lp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+const hash = n => Math.abs(Math.sin(n * 127.1) * 43758.5453) % 1;
+function ik(a, b, l1, l2, dir){
+  let dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1; const mx = l1 + l2 - .01;
+  if (d > mx) { dx *= mx / d; dy *= mx / d; d = mx; }
+  const x = (d * d + l1 * l1 - l2 * l2) / (2 * d), h = Math.sqrt(Math.max(0, l1 * l1 - x * x)), ux = dx / d, uy = dy / d;
+  return [[a[0] + ux * x - uy * h * dir, a[1] + uy * x + ux * h * dir], [a[0] + dx, a[1] + dy]];
+}
+function limb(g, pts, w, c){ g.strokeStyle = c; g.lineWidth = w; g.lineCap = g.lineJoin = 'round'; g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke(); }
+function dot(g, p, r, c){ g.fillStyle = c; g.beginPath(); g.arc(p[0], p[1], r, 0, 6.283); g.fill(); }
+function roadStart(){
+  RD.acc = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '').trim() || '#22d3ee';
+  if (RD.on) return; RD.on = true; RD.last = 0; requestAnimationFrame(roadFrame);
+}
+function drawScooter(g, A, ang, blur, beam){
+  g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.ellipse(0, 3, 60, 5, 0, 0, 6.283); g.fill();
+  if (beam) { const q = g.createLinearGradient(38, 0, 170, 0); q.addColorStop(0, A); q.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = .2 * beam; g.fillStyle = q; g.beginPath(); g.moveTo(38, -32); g.lineTo(170, -12); g.lineTo(170, -56); g.closePath(); g.fill(); g.globalAlpha = 1; }
+  [-39, 39].forEach(x => { g.save(); g.translate(x, -10);
+    g.strokeStyle = '#05080d'; g.lineWidth = 5; g.beginPath(); g.arc(0, 0, 9, 0, 6.283); g.stroke();
+    g.strokeStyle = '#5b6f82'; g.lineWidth = 1.4; g.beginPath(); g.arc(0, 0, 6.3, 0, 6.283); g.stroke();
+    g.rotate(ang); g.globalAlpha = Math.max(.15, 1 - blur); g.beginPath(); for (let k = 0; k < 5; k++) { g.moveTo(0, 0); g.lineTo(6.3 * Math.cos(k * 1.2566), 6.3 * Math.sin(k * 1.2566)); } g.stroke();
+    g.globalAlpha = 1; dot(g, [0, 0], 1.8, A); g.restore(); });
+  g.strokeStyle = '#22364d'; g.lineWidth = 3; g.beginPath(); g.arc(-39, -10, 13, 3.5, 5.9); g.stroke();
+  limb(g, [[-36, -15], [26, -15]], 5, '#1d2d42');
+  g.shadowColor = A; g.shadowBlur = 6; limb(g, [[-34, -12.2], [24, -12.2]], 1.2, A); g.shadowBlur = 0;
+  limb(g, [[39, -10], [31, -26]], 4, '#2a3b50'); limb(g, [[31, -26], [25, -93]], 4.5, '#2a3b50');
+  dot(g, [29, -40], 2.6, '#0c131c'); dot(g, [26, -94], 3.4, '#0c131c');
+  g.shadowColor = A; g.shadowBlur = 6; limb(g, [[21, -98], [28, -98]], 2.6, A); dot(g, [37, -32], 2.6, A); g.shadowBlur = 0;
+  limb(g, [[-54, -10], [-54, -15]], 2.6, '#ff4d5e');
+}
+function roadFrame(ts){
+  if (!document.body.classList.contains('road-on')) { RD.on = false; return; }
+  requestAnimationFrame(roadFrame);
+  const cv = $('road'), W = cv.clientWidth, H = cv.clientHeight; if (!W || !H) return;
+  const dpr = window.devicePixelRatio || 1;
+  if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const dt = RD.last ? Math.min(0.1, (ts - RD.last) / 1000) : 0; RD.last = ts; RD.t += dt;
+  let tgt = RD.mode === 'ride' ? 0 : 1, wv = 0, bx = 0, vt = RD.mode === 'ride' ? T.spd : 0;
+  if (RD.mode === 'bye') { const b = RD.bt += dt; tgt = b < 2 ? 1 : 0; wv = b < 1.9 ? 1 : Math.max(0, 1 - (b - 1.9) / .3);
+    if (b >= 2.5) { vt = 24; bx = Math.pow(b - 2.5, 2) * 170; }
+    if (b > 4.8) { document.body.classList.remove('road-on'); RD.mode = 'rest'; RD.pose = 1; RD.vis = 0; return; } }
+  RD.vis += (vt - RD.vis) * Math.min(1, dt * 3); RD.pose += (tgt - RD.pose) * Math.min(1, dt * 5);
+  const vis = RD.vis, p = RD.pose; RD.trav += vis / 3.6 * dt; RD.wa += vis / 3.6 * 10 * dt; RD.ph += dt * (3 + vis * .15);
+  const A = RD.acc, s = Math.min(H * .0031, W * .0027), PXM = s * 100, gy = H - 58, yr = gy - 12, off = RD.trav * PXM, cx = W * .30;
+  g.globalAlpha = 1; g.shadowBlur = 0;
+  let q = g.createLinearGradient(0, 0, 0, yr); q.addColorStop(0, '#02060d'); q.addColorStop(1, '#0d2a40'); g.fillStyle = q; g.fillRect(0, 0, W, yr + 1);
+  q = g.createRadialGradient(W * .6, yr, 0, W * .6, yr, W * .6); q.addColorStop(0, A); q.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = .28; g.fillStyle = q; g.fillRect(0, 0, W, yr + 1); g.globalAlpha = 1;
+  g.fillStyle = '#cfefff'; for (let k = 0; k < 28; k++) { g.globalAlpha = .25 + .5 * Math.abs(Math.sin(RD.t * (.5 + hash(k)) + k)); g.fillRect(hash(k + 3) * W, hash(k + 9) * yr * .6, 1.4, 1.4); } g.globalAlpha = 1;
+  [[.55, 34, .012, .02, '#0a1d2e'], [.78, 24, .02, .06, '#0c2438']].forEach(([yy, am, f, sc, col]) => { g.fillStyle = col; g.beginPath(); g.moveTo(0, yr);
+    for (let x = 0; x <= W; x += 6) { const u = (x + off * sc) * f; g.lineTo(x, yr - am * (.55 + .3 * Math.sin(u * 6) + .15 * Math.sin(u * 14 + 1.7)) - 18 * yy); } g.lineTo(W, yr); g.closePath(); g.fill(); });
+  const bw = 26, n0 = Math.floor(off * .12 / bw); g.fillStyle = '#0b1c2c';
+  for (let i = -1; i < W / bw + 2; i++) { const n = i + n0, x = i * bw - (off * .12) % bw, bh = 16 + 46 * hash(n * 1.7); g.fillRect(x, yr - bh, bw - 4, bh);
+    g.fillStyle = A; g.globalAlpha = .5; for (let j = 0; j < bh / 9; j++) if (hash(n * 9 + j) > .55) g.fillRect(x + 4 + (j % 2) * 8, yr - bh + 5 + j * 9, 3, 3); g.globalAlpha = 1; g.fillStyle = '#0b1c2c'; }
+  q = g.createLinearGradient(0, yr, 0, H); q.addColorStop(0, '#0a1626'); q.addColorStop(1, '#030710'); g.fillStyle = q; g.fillRect(0, yr, W, H - yr);
+  g.shadowColor = A; g.shadowBlur = 8; g.fillStyle = A; g.fillRect(0, yr, W, 2); g.shadowBlur = 0;
+  g.fillStyle = '#e8fbff'; g.globalAlpha = .75; for (let x = -(off % 80); x < W; x += 80) g.fillRect(x, gy + 36, 34, 3); g.globalAlpha = 1;
+  for (let x = -(off % 230); x < W; x += 230) { limb(g, [[x, yr], [x, yr - 24]], 2, '#2a3b50'); g.shadowColor = A; g.shadowBlur = 8; dot(g, [x, yr - 25], 2.6, A); g.shadowBlur = 0; }
+  if (vis > 9) { g.strokeStyle = '#eaffff'; g.lineWidth = 1.2; g.globalAlpha = Math.min(.25, vis / 80); for (let j = 0; j < 7; j++) { const x = W - ((off * 1.8 + j * 97) % (W + 90)), y = yr - 40 + j * 16 + hash(j) * 8; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 24 + vis * 1.6, y); g.stroke(); } g.globalAlpha = 1; }
+  // personaje y patineta
+  g.save(); g.translate(cx + bx, gy); g.scale(s, s);
+  drawScooter(g, A, RD.wa, Math.min(1, vis / 14), 1 - p * .7);
+  const bob = Math.sin(RD.ph) * 1.5 * Math.min(1, vis / 12) * (1 - p), br = Math.sin(RD.t * 1.8) * .9 * p;
+  const hip = lp([-6, -92 + bob], [Math.sin(RD.t * .6) * .8, -86], p), sh = lp([3, -146 + bob * .6], [2, -142 + br], p), hd = lp([8, -166 + bob * .6], [6, -160 + br], p);
+  const fr = lp([-20, -17], [-14, 6], p), ff = lp([8, -17], [10, 6], p);
+  const h1 = lp([25, -93], [22 + Math.sin(RD.t * 10) * 7, -188], wv), h2 = lp([22, -93], [8, -98], p);
+  const [k1, a1] = ik(hip, fr, 46, 47, -1), [k2, a2] = ik(hip, ff, 46, 47, -1), [e1, w1] = ik(sh, h1, 30, 28, 1), [e2, w2] = ik(sh, h2, 30, 28, 1);
+  const J = '#12a89a', SK = '#c68b66', shoe = (a, c) => limb(g, [[a[0] - 3, a[1] - 1], [a[0] + 8, a[1] - 1]], 6, c);
+  limb(g, [hip, k1, a1], 14, '#0e1a2b'); shoe(a1, '#aebbc6');
+  limb(g, [sh, e2, w2], 9, '#0e7f75'); dot(g, w2, 3.6, SK);
+  const nk = [sh[0] - 1, sh[1] - 5];
+  if (vis > 2) { const k = Math.min(1, vis / 10), sp = []; for (let i = 0; i < 7; i++) sp.push([nk[0] - i * 5 * k - i * .5, nk[1] + 3 + Math.sin(RD.ph * 2 - i * .9) * 2.5 * k]); limb(g, sp, 4, '#ff5d73'); }
+  limb(g, [hip, sh], 26, J); limb(g, [[hip[0] - 9, hip[1] - 6], [sh[0] - 10, sh[1] + 8]], 2, A);
+  limb(g, [hip, k2, a2], 14, '#16263d'); shoe(a2, '#dfe8ee');
+  limb(g, [sh, e1, w1], 9, J); dot(g, w1, 3.6, SK);
+  dot(g, hd, 10.5, SK); g.fillStyle = '#e9f2f7'; g.beginPath(); g.arc(hd[0] - .5, hd[1] - 1, 12, 2.98, 6.43); g.closePath(); g.fill();
+  g.strokeStyle = A; g.lineWidth = 2; g.beginPath(); g.arc(hd[0] - .5, hd[1] - 1, 12, 4.35, 5.5); g.stroke(); dot(g, [hd[0] + 5, hd[1] + 1], 1.2, '#1b1b1b');
+  g.restore();
+  // textos
+  g.textAlign = 'right'; const mono = 'ui-monospace,"SF Mono",Menlo,monospace', over = S.vLim > 0 && vis > S.vLim, R = W - 18;
+  if (RD.mode === 'bye') { const b = RD.bt, al = Math.min(1, Math.max(0, (b - .3) * 2)) * Math.min(1, Math.max(0, (3 - b) * 2));
+    g.globalAlpha = al; g.fillStyle = '#eaffff'; g.shadowColor = A; g.shadowBlur = 16; g.font = '700 ' + Math.round(H * .075) + 'px ' + mono; g.fillText('¡HASTA PRONTO!', R, H * .30);
+    g.shadowBlur = 0; g.fillStyle = A; g.font = '600 ' + Math.round(H * .055) + 'px ' + mono; g.fillText(RD.km + ' km recorridos', R, H * .30 + H * .08); g.globalAlpha = 1; }
+  else if (RD.mode === 'rest') { g.fillStyle = A; g.shadowColor = A; g.shadowBlur = 14; g.font = '700 ' + Math.round(H * .13) + 'px ' + mono; g.fillText('PAUSA', R, H * .34);
+    g.shadowBlur = 0; g.fillStyle = '#9fc4d8'; g.font = '600 ' + Math.round(H * .055) + 'px ' + mono; g.fillText('toca Reanudar', R, H * .34 + H * .09); }
+  else { g.fillStyle = over ? '#ff5d73' : '#eaffff'; g.shadowColor = over ? '#ff5d73' : A; g.shadowBlur = 18; g.font = '700 ' + Math.round(H * .30) + 'px ' + mono; g.fillText(String(Math.round(vis)), R, H * .40);
+    g.shadowBlur = 0; g.fillStyle = A; g.font = '600 ' + Math.round(H * .07) + 'px ' + mono; g.fillText('KM/H', R, H * .40 + H * .10); }
+  if (RD.mode !== 'bye') { g.shadowBlur = 0; g.font = '600 ' + Math.round(H * .07) + 'px ' + mono; g.textAlign = 'left';
+    g.fillStyle = T.pct <= 10 ? '#ff5d73' : T.pct <= 20 ? '#fbbf24' : '#eaffff'; g.fillText('BAT ' + T.pct + '%', 12, H * .12);
+    g.fillStyle = '#9fc4d8'; g.fillText($('dist').textContent + ' km', 12, H - 42); g.textAlign = 'right'; g.fillText('AUT ' + $('rk').textContent + ' km', W - 12, H - 42); }
+}
+$('roadOn').checked = S.road !== false;
+$('roadOn').onchange = e => { S.road = e.target.checked; save(); if (T.id) { document.body.classList.toggle('road-on', S.road); RD.mode = T.on ? 'ride' : 'rest'; if (S.road) roadStart(); } };
+function menuTab(t){ $('menu').dataset.tab = t; document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t)); $('menu').scrollTop = 0; }
+document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => menuTab(b.dataset.t)); menuTab('more');
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && T.on) { startWatch(); try { navigator.wakeLock.request('screen').then(l => { T.lock = l; }).catch(() => {}); } catch(e) {} } });
 let WARM = null;
 function warmOn(){
@@ -580,7 +702,7 @@ function warmOn(){
     if (T.on) return;
     const a = Math.round(p.coords.accuracy);
     $('gps').textContent = a <= 20 ? 'Señal GPS buena (±' + a + ' m). Listo para iniciar.' : 'Señal GPS ' + (a <= 60 ? 'regular' : 'débil') + ' (±' + a + ' m). Espera al aire libre.';
-    $('dbg').textContent = 'v6 · en espera · ±' + a + ' m';
+    $('dbg').textContent = 'v9 · en espera · ±' + a + ' m';
     mapPos(p.coords.latitude, p.coords.longitude);
   }, e => { $('gps').textContent = e.code === 1 ? 'Permiso de ubicación denegado. Actívalo en el navegador.' : 'Buscando señal GPS…'; },
   {enableHighAccuracy:true, maximumAge:0, timeout:60000});
