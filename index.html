@@ -141,11 +141,18 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
 .maplibregl-marker.me{position:absolute}
 .maplibregl-ctrl-attrib{background:rgba(5,10,18,.6)!important;color:#7f99ad!important;font-size:10px}.maplibregl-ctrl-attrib a{color:#7f99ad!important}
 #map{height:300px}
+#nav{display:flex;align-items:center;gap:14px;margin:6px 56px 10px 0;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+#nav[hidden]{display:none}#nav svg{width:54px;height:54px;color:var(--accent);flex:none;transition:transform .25s}
+#nav .nt{flex:1;min-width:0;display:grid;gap:2px}#nav b{font-size:1.9rem;line-height:1}#navT{font-size:.95rem}#navS{color:var(--mut);font-size:.8rem}#nav button{padding:8px 12px}
+:root:not([data-theme="light"]) #nav svg{filter:drop-shadow(0 0 6px var(--accent))}
+#q{width:100%;margin-top:8px;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-size:1rem}
+.rl button{display:block;width:100%;text-align:left;margin:6px 0}#rprev{margin-top:12px}#rprev .sub{margin:6px 0 12px}
 </style>
 </head>
 <body>
 <main>
   <button id="gear" type="button" aria-label="Abrir menú"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.8 10.2L22.4 10.5L22.4 13.5L19.8 13.8L18.8 16.2L20.4 18.3L18.3 20.4L16.2 18.8L13.8 19.8L13.5 22.4L10.5 22.4L10.2 19.8L7.8 18.8L5.7 20.4L3.6 18.3L5.2 16.2L4.2 13.8L1.6 13.5L1.6 10.5L4.2 10.2L5.2 7.8L3.6 5.7L5.7 3.6L7.8 5.2L10.2 4.2L10.5 1.6L13.5 1.6L13.8 4.2L16.2 5.2L18.3 3.6L20.4 5.7L18.8 7.8Z M12 8.8a3.2 3.2 0 1 0 0 6.4a3.2 3.2 0 1 0 0-6.4Z" fill="currentColor" fill-rule="evenodd"/></svg></button>
+  <div id="nav" hidden><svg id="navA" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 9h-4.5v9h-5v-9H5z" fill="currentColor"/></svg><div class="nt"><b id="navD" class="num">—</b><span id="navT"></span><small id="navS"></small></div><button id="navStop" type="button" aria-label="Cancelar navegación">✕</button></div>
   <canvas id="road" aria-hidden="true"></canvas>
   <div class="gauge">
     <svg viewBox="0 0 300 300" aria-hidden="true">
@@ -167,7 +174,7 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
   </div>
   <p id="wh" class="cap">% según la app de Segway</p>
   <p id="gps" class="cap">GPS apagado. Toca Iniciar viaje.</p>
-  <p id="dbg" class="cap">v11 · sin lecturas todavía</p>
+  <p id="dbg" class="cap">v17 · sin lecturas todavía</p>
 
   <div class="seg" id="dir" role="group" aria-label="Dirección del viaje">
     <button data-d="ida">Ida</button><button data-d="vuelta">Vuelta</button><button data-d="otro">Otra ruta</button>
@@ -177,13 +184,16 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
     <button id="go" class="primary">Iniciar viaje</button>
     <button id="reset">Reiniciar</button>
     <button id="fin" class="danger">Finalizar viaje</button>
+    <button id="dest" class="wide" type="button">Navegar a un destino</button>
     <button id="shareLoc" class="wide">Compartir mi ubicación</button>
   </div>
   <div id="sum" class="card" hidden></div>
   <div id="map" class="mapc"></div>
   <div id="prof" class="card" hidden></div>
   <div class="cards"><div class="card"><div class="cv num"><span id="dist">0</span><small>km</small></div><div class="cl">Este trayecto</div></div><div class="card"><div class="cv num"><span id="mov">0</span><small></small></div><div class="cl">Duración de conducción</div></div><div class="card"><div class="cv num"><span id="rt">—</span><small>h:mm</small></div><div class="cl">Tiempo restante</div></div><div class="card"><div class="cv num"><span id="arr">—</span><small>%</small></div><div class="cl">Llegarás con</div></div></div>
-  <div id="menu" class="sheet" hidden><div class="sheet-in"><div class="sheet-top"><div class="sheet-h"><h2>Menú</h2><button id="menuX" type="button">Cerrar</button></div><div class="tabs" id="tabs"><button type="button" data-t="more">Datos</button><button type="button" data-t="set">Ajustes</button><button type="button" data-t="hist">Historial</button><button type="button" data-t="plan">Carga</button></div></div>
+  <div id="navsheet" class="sheet" hidden><div class="sheet-in"><div class="sheet-top"><div class="sheet-h"><h2>¿A dónde vamos?</h2><button id="navX" type="button">Cerrar</button></div><input id="q" type="search" placeholder="Busca un lugar o una dirección" autocomplete="off"></div>
+  <div id="nres" class="rl"></div><div id="rprev" class="card" hidden></div><p id="navmsg" class="note"></p></div></div>
+<div id="menu" class="sheet" hidden><div class="sheet-in"><div class="sheet-top"><div class="sheet-h"><h2>Menú</h2><button id="menuX" type="button">Cerrar</button></div><div class="tabs" id="tabs"><button type="button" data-t="more">Datos</button><button type="button" data-t="set">Ajustes</button><button type="button" data-t="hist">Historial</button><button type="button" data-t="plan">Carga</button></div></div>
   <details class="more" open><summary>Más datos del trayecto</summary><div class="cards"><div class="card"><div class="cv num"><span id="vmax">0</span><small>km/h</small></div><div class="cl">Velocidad máx.</div></div><div class="card"><div class="cv num"><span id="avg">0</span><small>km/h</small></div><div class="cl">Velocidad media</div></div><div class="card"><div class="cv num"><span id="rem">—</span><small>km</small></div><div class="cl">Falta de ruta</div></div><div class="card"><div class="cv num"><span id="used">0</span><small>Wh</small></div><div class="cl">Energía usada</div></div><div class="card"><div class="cv num"><span id="asc">0</span><small>m</small></div><div class="cl">Subida acumulada</div></div><div class="card"><div class="cv num"><span id="desc">0</span><small>m</small></div><div class="cl">Bajada acumulada</div></div></div></details>
 <details class="t-set" open><summary>Ajustes</summary>
     <h3 class="gh">Batería</h3><label>Batería
@@ -205,10 +215,12 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
     <label>Velocidad de la voz<input id="rate" type="range" min="0.7" max="1.2" step="0.05" style="width:140px"></label>
     <label>Probar la voz<button id="vtest" type="button">Escuchar</button></label>
     <p class="note">La app usa las voces instaladas en tu iPhone. Para una voz más natural, descarga una que diga Premium o Mejorada en Ajustes, Accesibilidad, Contenido hablado, Voces, Español. Luego vuelve aquí y elígela.</p>
+    <h3 class="gh">Navegación</h3><label>Clave de OpenRouteService<input id="orsKey" type="password" autocomplete="off" style="width:150px"></label>
+    <p class="note">Sirve para buscar destinos y calcular rutas más rápido. Se guarda solo en este celular. Sin clave, la app usa servidores de respaldo, más lentos. Se obtiene gratis en openrouteservice.org.</p>
     <h3 class="gh">Mapa</h3><label>Estilo del mapa<select id="mapStyle" style="width:150px"><option value="dark">Oscuro 3D</option><option value="sat">Satélite</option><option value="light">Claro 3D</option></select></label><label>Vista inclinada al rodar<input id="map3d" type="checkbox" checked style="width:auto"></label>
     <h3 class="gh">Pantalla</h3><label>Vista de carretera al iniciar<input id="roadOn" type="checkbox" checked style="width:auto"></label><label>Mostrar mapa<input id="mapOn" type="checkbox" checked style="width:auto"></label><label>Tema<button id="theme" type="button">Cambiar</button></label>
     <p class="note">El consumo inicial es un valor de partida: ajústalo con tus datos. A medida que bajas de porcentaje y avanzas, la app lo reemplaza por tu consumo real de los últimos 3 km. Actualiza el % en las paradas, no en marcha.</p>
-    <p class="note">Privacidad: tu ubicación se procesa solo en este celular. La app no tiene cuentas ni cookies y no envía tu ubicación ni tus viajes a ningún servidor. Si el mapa está activado, tu celular descarga la librería del mapa (jsDelivr o cdnjs) y los mosaicos del mapa (CARTO y OpenStreetMap, o Esri si eliges satélite), y esos servicios pueden ver tu dirección IP y la zona que consultas; desactiva el mapa en Ajustes para evitarlo. Solo guarda tus ajustes y viajes en este navegador, y puedes borrarlos en Historial.</p>
+    <p class="note">Privacidad: tu ubicación se procesa solo en este celular. La app no tiene cuentas ni cookies y no envía tu ubicación ni tus viajes a ningún servidor propio. Si usas la navegación, tu punto de partida, el destino y lo que escribas en el buscador se envían a OpenRouteService para calcular la ruta (y, si falla, a servidores de respaldo como FOSSGIS o Photon). Si el mapa está activado, tu celular descarga la librería del mapa (jsDelivr o cdnjs) y los mosaicos del mapa (CARTO y OpenStreetMap, o Esri si eliges satélite), y esos servicios pueden ver tu dirección IP y la zona que consultas; desactiva el mapa en Ajustes para evitarlo. Solo guarda tus ajustes y viajes en este navegador, y puedes borrarlos en Historial.</p>
     <p class="note">La autonomía y la potencia son estimaciones y no reemplazan el indicador de batería de la patineta.</p>
   </details>
 <details class="t-hist" open><summary>Historial</summary>
@@ -231,8 +243,9 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
 
 <script>
 const $ = id => document.getElementById(id);
-const S = {cap:187.2, res:5, base:8, voice:true, map:true, kmEvery:5, voiceName:'', rate:0.95};
+const S = {cap:187.2, res:5, base:7.1, voice:true, map:true, kmEvery:5, voiceName:'', rate:0.95};
 try { Object.assign(S, JSON.parse(localStorage.getItem('mp-settings') || '{}')); } catch(e) {}
+if (!S.baseV) { if (S.base === 8) S.base = 7.1; S.baseV = 1; }
 S.watch = false; S.mix = false;
 const T = {on:false, dist:0, mov:0, pct:100, startPct:100, log:[], spd:0, last:null, watch:null, lock:null, said:{}, dir:S.dir || 'otro', asc:0, desc:0, alt:null, altRef:null, id:null, max:0, pts:[], lastPt:0, ri:0};
 
@@ -318,8 +331,8 @@ function setPct(v, auto){
 }
 
 function onPos(p){
-  const c = p.coords;
-  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v11 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
+  const c = p.coords; LF = {lat:c.latitude, lon:c.longitude, t:Date.now()};
+  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v17 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
   if (c.accuracy > 60) { $('gps').textContent = 'Señal GPS débil (±' + Math.round(c.accuracy) + ' m)'; return; }
   const prev = T.last, dt = prev ? (p.timestamp - prev.t) / 1000 : 0;
   if (prev && dt < 0.8 && c.speed == null) return;
@@ -340,6 +353,7 @@ function onPos(p){
     if (T.altRef == null) T.altRef = T.alt;
     else if (Math.abs(T.alt - T.altRef) >= 6) { if (T.alt > T.altRef) T.asc += T.alt - T.altRef; else T.desc += T.altRef - T.alt; T.altRef = T.alt; } }
   T.last = {c: {latitude:c.latitude, longitude:c.longitude}, t: p.timestamp};
+  navUpdate(c.latitude, c.longitude, c.accuracy);
   mapPos(c.latitude, c.longitude, c.heading);
   if (T.on && T.id && T.dist - T.lastPt >= 25) { T.pts.push([+c.latitude.toFixed(5), +c.longitude.toFixed(5), Math.round(T.dist), Math.round(T.asc), Math.round(T.desc)]); T.lastPt = T.dist; }
   kmAlert();
@@ -390,6 +404,7 @@ function showSummary(rows, note, rt, dir){
 function finish(){
   if (!T.id && !T.on) { $('gps').textContent = 'No hay un viaje en curso.'; return; }
   if (T.on) pause(); else saveTrip();
+  navEnd();
   RD.km = (T.dist / 1000).toFixed(1); if (document.body.classList.contains('road-on')) { RD.mode = 'bye'; RD.bt = 0; roadStart(); }
   const km = T.dist / 1000, drop = T.startPct - T.pct, wh = drop * S.cap / 100;
   const avg = T.mov > 0 ? T.dist / T.mov * 3.6 : 0;
@@ -478,7 +493,7 @@ $('clr').onclick = () => { H = []; try { localStorage.removeItem('mp-trips'); } 
 $('clrAll').onclick = () => {
   H = []; T.id = null;
   try { localStorage.removeItem('mp-trips'); localStorage.removeItem('mp-settings'); localStorage.removeItem('mp-routes'); RT = {}; drawRoute(); } catch(e) {}
-  Object.assign(S, {cap:187.2, res:5, base:8, voice:true, watch:false, dir:'otro'}); T.dir = 'otro';
+  Object.assign(S, {cap:187.2, res:5, base:7.1, baseV:1, voice:true, watch:false, dir:'otro'}); T.dir = 'otro';
   $('cap').value = S.cap; $('res').value = S.res; $('base').value = S.base; $('voice').checked = true; $('watch').checked = false; $('capSel').value = '187.2';
   renderHist(); render();
 };
@@ -652,6 +667,9 @@ function glLayers(){ try {
   const m = GLM, A = '#22d3ee';
   m.addSource('ref', {type:'geojson', data:glLine(refCoords())}); m.addSource('trk', {type:'geojson', data:glLine(TC)});
   m.addLayer({id:'ref', type:'line', source:'ref', paint:{'line-color':'#8b95ab', 'line-width':3, 'line-dasharray':[2, 2]}});
+  m.addSource('nav', {type:'geojson', data:glLine(NAV.r ? NAV.r.pts : [])});
+  m.addLayer({id:'nav-g', type:'line', source:'nav', layout:{'line-cap':'round', 'line-join':'round'}, paint:{'line-color':'#c084fc', 'line-width':12, 'line-blur':6, 'line-opacity':.5}});
+  m.addLayer({id:'nav', type:'line', source:'nav', layout:{'line-cap':'round', 'line-join':'round'}, paint:{'line-color':'#c084fc', 'line-width':5}});
   m.addLayer({id:'trk-g', type:'line', source:'trk', layout:{'line-cap':'round', 'line-join':'round'}, paint:{'line-color':A, 'line-width':11, 'line-blur':7, 'line-opacity':.45}});
   m.addLayer({id:'trk', type:'line', source:'trk', layout:{'line-cap':'round', 'line-join':'round'}, paint:{'line-color':A, 'line-width':4}});
   const b = (m.getStyle().layers || []).find(l => l['source-layer'] === 'building' && l.type === 'fill');
@@ -680,6 +698,113 @@ function glLoop(ts){
 }
 $('mapStyle').value = S.mapStyle || 'dark'; $('mapStyle').onchange = e => { S.mapStyle = e.target.value; save(); if (GLM) GLM.setStyle(glStyle()); };
 $('map3d').checked = S.map3d !== false; $('map3d').onchange = e => { S.map3d = e.target.checked; save(); };
+let LF = null, NVL = null;
+const NAV = {on:false, dest:null, r:null, cum:[], k:0, si:0, off:0, rr:0, told:{}, pre:null, mk:null};
+async function jfetch(url, opt, ms){
+  const c = new AbortController(), t = setTimeout(() => c.abort(), ms || 7000);
+  try { const r = await fetch(url, Object.assign({signal:c.signal}, opt)); if (!r.ok) throw new Error(r.status); return await r.json(); } finally { clearTimeout(t); }
+}
+async function geocode(q){
+  const f = LF ? [LF.lon, LF.lat] : [-75.5812, 6.2442];
+  if (S.orsKey) { try {
+    const j = await jfetch('https://api.openrouteservice.org/geocode/autocomplete?api_key=' + encodeURIComponent(S.orsKey) + '&text=' + encodeURIComponent(q) + '&boundary.country=CO&size=6&focus.point.lon=' + f[0] + '&focus.point.lat=' + f[1], {}, 6000);
+    const a = (j.features || []).map(x => ({label:x.properties.label, lon:x.geometry.coordinates[0], lat:x.geometry.coordinates[1]})); if (a.length) return a;
+  } catch(e) {} }
+  const j = await jfetch('https://photon.komoot.io/api/?limit=6&q=' + encodeURIComponent(q) + '&lon=' + f[0] + '&lat=' + f[1], {}, 6000);
+  return (j.features || []).map(x => { const p = x.properties; return {label:[p.name, p.street, p.district || p.city].filter(Boolean).join(', '), lon:x.geometry.coordinates[0], lat:x.geometry.coordinates[1]}; });
+}
+function normORS(j){
+  const f = j.features[0], s = f.properties.segments[0], A = {0:-90, 1:90, 2:-135, 3:135, 4:-45, 5:45, 6:0, 7:0, 8:0, 9:180, 10:0, 11:0, 12:-30, 13:30};
+  return {pts:f.geometry.coordinates.map(p => [p[0], p[1]]), dist:f.properties.summary.distance, dur:f.properties.summary.duration,
+    steps:s.steps.map(t => ({idx:t.way_points[0], ang:A[t.type] || 0, goal:t.type === 10, text:t.instruction}))};
+}
+function normOSRM(j){
+  const r = j.routes[0], pts = r.geometry.coordinates, st = [], from = {i:0};
+  const ANG = {'left':-90, 'right':90, 'sharp left':-135, 'sharp right':135, 'slight left':-45, 'slight right':45, 'straight':0, 'uturn':180};
+  const TX = {'left':'Gira a la izquierda', 'right':'Gira a la derecha', 'sharp left':'Gira cerrado a la izquierda', 'sharp right':'Gira cerrado a la derecha', 'slight left':'Gira ligeramente a la izquierda', 'slight right':'Gira ligeramente a la derecha', 'straight':'Sigue recto', 'uturn':'Da la vuelta'};
+  r.legs.forEach(l => l.steps.forEach(s => {
+    const m = s.maneuver, loc = m.location; let best = from.i, bd = 1e12;
+    for (let i = from.i; i < pts.length; i++) { const d = (pts[i][0] - loc[0]) ** 2 + (pts[i][1] - loc[1]) ** 2; if (d < bd) { bd = d; best = i; } }
+    from.i = best; const nm = s.name ? ' por ' + s.name : '', goal = m.type === 'arrive';
+    st.push({idx:best, ang:ANG[m.modifier] || 0, goal, text:goal ? 'Has llegado a tu destino' : m.type === 'depart' ? 'Inicia el recorrido' + nm : /roundabout|rotary/.test(m.type) ? 'Entra en la rotonda' + nm : (TX[m.modifier] || 'Sigue recto') + nm});
+  }));
+  return {pts, dist:r.distance, dur:r.duration, steps:st};
+}
+async function getRoute(a, b){
+  if (S.orsKey) for (const prof of ['cycling-electric', 'cycling-regular']) { try {
+    return normORS(await jfetch('https://api.openrouteservice.org/v2/directions/' + prof + '/geojson', {method:'POST', headers:{'Content-Type':'application/json', Authorization:S.orsKey},
+      body:JSON.stringify({coordinates:[a, b], language:'es', instructions:true, instructions_format:'text', units:'m'})}, 8000));
+  } catch(e) {} }
+  return normOSRM(await jfetch('https://routing.openstreetmap.de/routed-bike/route/v1/driving/' + a.join(',') + ';' + b.join(',') + '?overview=full&geometries=geojson&steps=true', {}, 8000));
+}
+function getStart(){
+  if (LF && Date.now() - LF.t < 20000) return Promise.resolve([LF.lon, LF.lat]);
+  return new Promise((ok, no) => navigator.geolocation.getCurrentPosition(p => ok([p.coords.longitude, p.coords.latitude]), no, {enableHighAccuracy:true, timeout:10000, maximumAge:5000}));
+}
+function navDraw(){
+  const pts = NAV.r ? NAV.r.pts : [];
+  try {
+    if (GLM) { const s = GLM.getSource('nav'); if (s) s.setData(glLine(pts)); }
+    else if (MAP) { if (!NVL) NVL = L.polyline([], {color:'#c084fc', weight:6}).addTo(MAP); NVL.setLatLngs(pts.map(p => [p[1], p[0]])); }
+    if (NAV.mk) { NAV.mk.remove(); NAV.mk = null; }
+    if (NAV.on && NAV.dest) { if (GLM) NAV.mk = new maplibregl.Marker({color:'#c084fc'}).setLngLat([NAV.dest.lon, NAV.dest.lat]).addTo(GLM);
+      else if (MAP) NAV.mk = L.circleMarker([NAV.dest.lat, NAV.dest.lon], {radius:9, color:'#fff', weight:3, fillColor:'#c084fc', fillOpacity:1}).addTo(MAP); }
+  } catch(e) {}
+}
+function cumOf(P){ const c = [0]; for (let i = 1; i < P.length; i++) c.push(c[i - 1] + hav({latitude:P[i - 1][1], longitude:P[i - 1][0]}, {latitude:P[i][1], longitude:P[i][0]})); return c; }
+function navSet(r){ NAV.r = r; NAV.cum = cumOf(r.pts); NAV.k = 0; NAV.si = 0; NAV.off = 0; NAV.told = {'0a':1, '0b':1}; navDraw(); }
+function navEnd(){ NAV.on = false; NAV.r = null; NAV.pre = null; $('nav').hidden = true; navDraw(); }
+function navStart(){
+  const p = NAV.pre; if (!p) return; NAV.on = true; NAV.dest = p.dest; navSet(p.r); navSheet(false); $('nav').hidden = false;
+  say('Navegación iniciada. ' + p.r.steps[0].text); if (!T.on) start();
+}
+async function navReroute(lat, lon){
+  if (Date.now() - NAV.rr < 15000 || !NAV.dest) return; NAV.rr = Date.now(); NAV.off = 0; say('Recalculando ruta.');
+  try { navSet(await getRoute([lon, lat], [NAV.dest.lon, NAV.dest.lat])); } catch(e) { $('navS').textContent = 'Sin conexión: sigo con la ruta anterior'; }
+}
+function navUpdate(lat, lon, acc){ try {
+  if (!NAV.on || !NAV.r) return;
+  const P = NAV.r.pts, S2 = NAV.r.steps, me = {latitude:lat, longitude:lon}; let best = NAV.k, bd = 1e9;
+  for (let i = NAV.k; i < Math.min(P.length, NAV.k + 120); i++) { const d = hav(me, {latitude:P[i][1], longitude:P[i][0]}); if (d < bd) { bd = d; best = i; } }
+  NAV.k = best;
+  if (bd > Math.max(40, (acc || 0) * 1.5)) { if (++NAV.off >= 3) navReroute(lat, lon); } else NAV.off = 0;
+  const rem = NAV.cum[NAV.cum.length - 1] - NAV.cum[NAV.k];
+  let si = S2.findIndex((s, i) => NAV.cum[s.idx] - NAV.cum[NAV.k] > -8 || i === S2.length - 1); if (si < 0) si = S2.length - 1;
+  const st = S2[si], dn = Math.max(0, NAV.cum[st.idx] - NAV.cum[NAV.k]);
+  if (NAV.si !== si) { NAV.si = si; }
+  const low = t => t.charAt(0).toLowerCase() + t.slice(1);
+  if (!st.goal) {
+    if (dn <= 250 && dn > 70 && !NAV.told[si + 'a']) { NAV.told[si + 'a'] = 1; say('En ' + Math.round(dn / 50) * 50 + ' metros, ' + low(st.text)); }
+    if (dn <= 60 && !NAV.told[si + 'b']) { NAV.told[si + 'b'] = 1; say(st.text); }
+  }
+  if (rem < 25) { say('Has llegado a tu destino.'); navEnd(); return; }
+  const mins = Math.max(1, Math.round(NAV.r.dur * rem / NAV.r.dist / 60)), arr = Math.max(0, Math.round(T.pct - rem / 1000 * whPerKm() / S.cap * 100));
+  $('navA').style.transform = 'rotate(' + st.ang + 'deg)';
+  $('navD').textContent = dn < 1000 ? Math.round(dn / 10) * 10 + ' m' : (dn / 1000).toFixed(1) + ' km';
+  $('navT').textContent = st.text;
+  $('navS').textContent = (rem / 1000).toFixed(1) + ' km · ' + mins + ' min · llegas con ' + arr + ' %';
+} catch(e) {} }
+function navSheet(o){ $('navsheet').hidden = !o; document.body.style.overflow = o ? 'hidden' : ''; if (o) { $('navmsg').textContent = ''; $('q').focus(); } }
+function navPreview(){
+  const p = NAV.pre, el = $('rprev'); el.textContent = ''; if (!p) { el.hidden = true; return; }
+  const km = p.r.dist / 1000, arr = Math.max(0, Math.round(T.pct - km * baseFor(T.dir) / S.cap * 100));
+  const h = document.createElement('b'); h.textContent = p.dest.label; el.appendChild(h);
+  const d = document.createElement('div'); d.className = 'sub'; d.textContent = km.toFixed(1) + ' km · ' + Math.max(1, Math.round(p.r.dur / 60)) + ' min · llegarías con ' + arr + ' % de batería'; el.appendChild(d);
+  const g = document.createElement('button'); g.className = 'primary'; g.type = 'button'; g.textContent = 'Iniciar navegación'; g.onclick = navStart; el.appendChild(g);
+  el.hidden = false;
+}
+async function navChoose(d){
+  $('nres').textContent = ''; $('navmsg').textContent = 'Calculando ruta…';
+  try { const a = await getStart(), r = await getRoute(a, [d.lon, d.lat]); NAV.pre = {dest:d, r}; $('navmsg').textContent = ''; navPreview(); }
+  catch(e) { $('navmsg').textContent = 'No pude calcular la ruta. Revisa tu conexión, tu clave o el GPS e intenta de nuevo.'; }
+}
+let qT = 0;
+$('q').oninput = e => { clearTimeout(qT); const v = e.target.value.trim(); NAV.pre = null; navPreview(); if (v.length < 3) { $('nres').textContent = ''; return; }
+  qT = setTimeout(async () => { try { const a = await geocode(v); $('nres').textContent = ''; $('navmsg').textContent = a.length ? '' : 'Sin resultados.';
+    a.forEach(x => { const b = document.createElement('button'); b.type = 'button'; b.textContent = x.label; b.onclick = () => navChoose(x); $('nres').appendChild(b); }); }
+    catch(e) { $('navmsg').textContent = 'No pude buscar ahora. Revisa tu conexión.'; } }, 350); };
+$('dest').onclick = () => navSheet(true); $('navX').onclick = () => navSheet(false); $('navStop').onclick = () => { say('Navegación cancelada.'); navEnd(); };
+$('orsKey').value = S.orsKey || ''; $('orsKey').onchange = e => { S.orsKey = e.target.value.trim(); save(); };
 initMap();
 function menuOpen(o){ $('menu').hidden = !o; document.body.style.overflow = o ? 'hidden' : ''; if (o) $('menu').scrollTop = 0; }
 $('gear').onclick = () => menuOpen(true); $('menuX').onclick = () => menuOpen(false);
@@ -701,21 +826,119 @@ function roadStart(){
   RD.acc = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '').trim() || '#22d3ee';
   if (RD.on) return; RD.on = true; RD.last = 0; requestAnimationFrame(roadFrame);
 }
+function tap(g, a, b, w1, w2, c, c2){
+  const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L; let f = c;
+  if (c2) { let px = nx, py = ny; if (px < 0 || (px === 0 && py > 0)) { px = -px; py = -py; } const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, wm = (w1 + w2) / 4, q = g.createLinearGradient(mx - px * wm, my - py * wm, mx + px * wm, my + py * wm); q.addColorStop(0, c); q.addColorStop(1, c2); f = q; }
+  g.fillStyle = f; g.beginPath(); g.moveTo(a[0] + nx * w1 / 2, a[1] + ny * w1 / 2); g.lineTo(b[0] + nx * w2 / 2, b[1] + ny * w2 / 2);
+  g.lineTo(b[0] - nx * w2 / 2, b[1] - ny * w2 / 2); g.lineTo(a[0] - nx * w1 / 2, a[1] - ny * w1 / 2); g.closePath(); g.fill();
+  g.beginPath(); g.arc(a[0], a[1], w1 / 2, 0, 6.283); g.fill(); g.beginPath(); g.arc(b[0], b[1], w2 / 2, 0, 6.283); g.fill();
+}
+function rim(g, a, b, w, c){ const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1; let nx = -dy / L, ny = dx / L; if (nx > 0 || (nx === 0 && ny < 0)) { nx = -nx; ny = -ny; }
+  limb(g, [[a[0] + nx * w, a[1] + ny * w], [b[0] + nx * w, b[1] + ny * w]], .9, c); }
+function hl(g, a, b, w, c){ const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1; let nx = -dy / L, ny = dx / L; if (nx < 0 || (nx === 0 && ny > 0)) { nx = -nx; ny = -ny; }
+  limb(g, [[a[0] + nx * w, a[1] + ny * w], [b[0] + nx * w, b[1] + ny * w]], w * .9, c); }
+function shoe(g, a, dark){
+  g.fillStyle = dark ? '#aab6c2' : '#f4f7fa'; g.beginPath(); g.moveTo(a[0] - 6, a[1] - 5); g.lineTo(a[0] + 2, a[1] - 5.5); g.quadraticCurveTo(a[0] + 9, a[1] - 4, a[0] + 11.5, a[1] + 1.5); g.lineTo(a[0] + 11.5, a[1] + 3); g.lineTo(a[0] - 6, a[1] + 3); g.closePath(); g.fill();
+  limb(g, [[a[0] - 6, a[1] + 3.4], [a[0] + 11.5, a[1] + 3.4]], 2.6, dark ? '#b8560f' : '#ff7a1a');
+  limb(g, [[a[0] - 1, a[1] - 4], [a[0] + 2, a[1] - 1.5]], .9, '#9aa7b3'); limb(g, [[a[0] + 2, a[1] - 4.5], [a[0] + 5, a[1] - 2]], .9, '#9aa7b3');
+}
+function glove(g, w, open, c){ dot(g, w, 4.2, c); if (open) { limb(g, [[w[0] + 2, w[1] - 2], [w[0] + 5, w[1] - 6]], 2, c); limb(g, [[w[0], w[1] - 3], [w[0] + 1, w[1] - 8]], 2, c); } else limb(g, [[w[0] - 2.5, w[1] - 1], [w[0] + 3, w[1] - 1]], .8, '#3b4553'); }
+function pw(a, t){ for (let i = 1; i < a.length; i++) if (t <= a[i][0]) { const u = (t - a[i - 1][0]) / (a[i][0] - a[i - 1][0]); return a[i - 1][1] + (a[i][1] - a[i - 1][1]) * u; } return a[a.length - 1][1]; }
+function body(g, a, k, b, prof, c0, c1){
+  const N = 18, c = [2 * k[0] - (a[0] + b[0]) / 2, 2 * k[1] - (a[1] + b[1]) / 2], Lp = [], Rp = [];
+  for (let i = 0; i <= N; i++) { const t = i / N, u = 1 - t, x = u * u * a[0] + 2 * u * t * c[0] + t * t * b[0], y = u * u * a[1] + 2 * u * t * c[1] + t * t * b[1];
+    const dx = 2 * u * (c[0] - a[0]) + 2 * t * (b[0] - c[0]), dy = 2 * u * (c[1] - a[1]) + 2 * t * (b[1] - c[1]), L = Math.hypot(dx, dy) || 1, w = pw(prof, t);
+    Lp.push([x - dy / L * w, y + dx / L * w]); Rp.push([x + dy / L * w, y - dx / L * w]); }
+  const dxm = b[0] - a[0], dym = b[1] - a[1], Lm = Math.hypot(dxm, dym) || 1; let px = -dym / Lm, py = dxm / Lm; if (px < 0 || (px === 0 && py > 0)) { px = -px; py = -py; }
+  const wm = pw(prof, .5) + 1.5, q = g.createLinearGradient(k[0] - px * wm, k[1] - py * wm, k[0] + px * wm, k[1] + py * wm); q.addColorStop(0, c0); q.addColorStop(1, c1);
+  g.fillStyle = q; g.beginPath(); g.moveTo(Lp[0][0], Lp[0][1]); Lp.forEach(p => g.lineTo(p[0], p[1])); for (let i = N; i >= 0; i--) g.lineTo(Rp[i][0], Rp[i][1]); g.closePath(); g.fill();
+}
+function blob(g, pts, fill){
+  const n = pts.length, m = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], s = m(pts[n - 1], pts[0]);
+  g.fillStyle = fill; g.beginPath(); g.moveTo(s[0], s[1]); for (let i = 0; i < n; i++) { const e = m(pts[i], pts[(i + 1) % n]); g.quadraticCurveTo(pts[i][0], pts[i][1], e[0], e[1]); } g.closePath(); g.fill();
+}
+function torso(g, H, S, c0, c1, fw, bw, hem, fl){
+  const dx = S[0] - H[0], dy = S[1] - H[1]; let nx = dy, ny = -dx; const L = Math.hypot(nx, ny) || 1; nx /= L; ny /= L; if (nx < 0) { nx = -nx; ny = -ny; }
+  const P = (t, n) => [H[0] + dx * t + nx * n, H[1] + dy * t + ny * n];
+  const dxm = S[0] - H[0], q = g.createLinearGradient(P(.5, -bw)[0], P(.5, -bw)[1], P(.5, fw)[0], P(.5, fw)[1]); q.addColorStop(0, c0); q.addColorStop(1, c1);
+  const pts = [P(hem, -bw + 1.2 - fl * 2), P(.3, -bw - 1.4), P(.7, -bw - 1.9), P(1.0, -bw - .4), P(1.08, -3), P(1.08, 3.5), P(1.0, fw - 1), P(.85, fw + .6), P(.55, fw - .2), P(.2, fw - 1.2 - fl * 1.5), P(hem, fw - 1.4 - fl * 2.5)];
+  blob(g, pts, q);
+}
+function hand(g, w, open, c){
+  blob(g, [[w[0] - 3.6, w[1] - 1.8], [w[0] + 1, w[1] - 3.8], [w[0] + 4.2, w[1] - 1.5], [w[0] + 3.8, w[1] + 2.6], [w[0] - 1, w[1] + 3.6]], c);
+  if (open) { [[-1.5, -8], [.5, -9.5], [2.6, -8.6], [4.2, -6.8]].forEach(f => limb(g, [[w[0] + f[0] * .3, w[1] - 3], [w[0] + f[0], w[1] + f[1]]], 2, c)); limb(g, [[w[0] - 2, w[1] - 1], [w[0] - 5, w[1] - 4]], 2.2, c); }
+  else { limb(g, [[w[0] + 3, w[1] - 2.5], [w[0] + 5.6, w[1] + .4], [w[0] + 3.4, w[1] + 3]], 2.7, c); limb(g, [[w[0] - 1, w[1] - 3.2], [w[0] + 2.8, w[1] - 4.2]], 2.2, c); limb(g, [[w[0] + 1, w[1] - 2.8], [w[0] + 4.4, w[1] - 3.4]], .7, 'rgba(255,255,255,.18)'); }
+}
+function sneaker(g, a, far){
+  const W = far ? '#b9b2a6' : '#f1ece2', T = far ? '#8d7455' : '#c9a06e';
+  blob(g, [[a[0] - 6.5, a[1] + 2.5], [a[0] - 7, a[1] - 3], [a[0] - 3.5, a[1] - 6.2], [a[0] + 2, a[1] - 6.6], [a[0] + 7.5, a[1] - 3.6], [a[0] + 12.6, a[1] - .2], [a[0] + 12.8, a[1] + 2.6]], W);
+  blob(g, [[a[0] - 6.8, a[1] + 2.2], [a[0] + 12.9, a[1] + 2.2], [a[0] + 12.9, a[1] + 4.8], [a[0] - 6.6, a[1] + 4.8]], T);
+  limb(g, [[a[0] + 7.8, a[1] - 3.4], [a[0] + 11.2, a[1] - .6]], .7, 'rgba(0,0,0,.22)');
+  [-.5, 2.3, 5].forEach(o => limb(g, [[a[0] + o, a[1] - 5.8 + (o > 3 ? 1.6 : 0)], [a[0] + o + 1.5, a[1] - 3.2 + (o > 3 ? 1.2 : 0)]], .8, far ? '#8c867c' : '#b7b0a4'));
+  limb(g, [[a[0] - 6.5, a[1] - 1], [a[0] - 6.6, a[1] - 4]], 1.2, '#ff7a1a');
+}
+function drawHuman(g, A, o){
+  const {hip, sh, hd, k1, a1, k2, a2, e1, w1, e2, w2, wv, vis, p} = o, fl = Math.min(1, vis / 18) * (1 - p);
+  const TEE = ['#cfd6d6', '#f7f9f8'], JK0 = '#38502f', JK1 = '#7c9a5e', JKd = '#2a3d25', PT0 = '#8a7b64', PT1 = '#d8caae', PTd = '#6c5f4b', SK = '#f2c8a4', SD = '#d9a47f', HR = '#3a2a20', BD = '#4a3426', GL = '#1b2027';
+  const legP = [[0, 8.8], [.2, 8.6], [.42, 6.8], [.52, 6.4], [.68, 7], [.86, 5], [1, 4.4]], armP = [[0, 5.6], [.3, 5.1], [.52, 4.2], [.78, 4.2], [1, 3.7]];
+  // lado lejano
+  body(g, hip, k1, a1, legP, '#5a4e3f', '#7b6d58'); sneaker(g, a1, true);
+  body(g, sh, e2, w2, armP, JKd, '#4d6a3b'); hand(g, w2, false, GL);
+  // pierna cercana
+  body(g, hip, k2, a2, legP, PT0, PT1);
+  limb(g, [[k2[0] - 3, k2[1] - 4], [k2[0] - 1, k2[1] - 1.6]], .8, 'rgba(0,0,0,.25)'); limb(g, [[k2[0] - 3.4, k2[1] - 1.2], [k2[0] - 1.4, k2[1] + 1.2]], .8, 'rgba(0,0,0,.2)');
+  body(g, lp(k2, a2, .8), lp(k2, a2, .9), [a2[0], a2[1] - 1.5], [[0, 5.2], [1, 4.8]], PTd, '#a89a80'); sneaker(g, a2, false);
+  // torso: camiseta y camisa abierta
+  torso(g, [hip[0], hip[1] + 2], sh, TEE[0], TEE[1], 11.2, 10.6, -.02, 0);
+  torso(g, hip, sh, JK0, JK1, 9.2, 11.6, .01, fl);
+  limb(g, [lp(hip, sh, .08), lp(hip, sh, .52)].map(q => [q[0] + 8.6 - fl * 1.2, q[1]]), 1.3, 'rgba(0,0,0,.28)');
+  limb(g, [lp(hip, sh, .28), lp(hip, sh, .36)].map(q => [q[0] + 4, q[1]]), 3.2, 'rgba(0,0,0,.16)');
+  // cuello
+  body(g, [hd[0] - 1, hd[1] + 7], [(hd[0] + sh[0]) / 2 - .5, (hd[1] + sh[1]) / 2], [sh[0] + 1, sh[1] - 4], [[0, 5], [1, 6.2]], SD, SK);
+  blob(g, [[sh[0] - 5, sh[1] - 2.5], [sh[0] - 1, sh[1] - 5.5], [sh[0] + 4.2, sh[1] - 3], [sh[0] + 1, sh[1] - 1.5]], '#e6ebea');
+  // brazo cercano (manga larga)
+  body(g, sh, e1, w1, armP, JK0, JK1); limb(g, [[e1[0] - 1, e1[1] - 3.6], [e1[0] + 1.6, e1[1] - 1]], .8, 'rgba(0,0,0,.25)');
+  body(g, lp(e1, w1, .86), lp(e1, w1, .93), w1, [[0, 4.6], [1, 4.2]], JKd, '#55713f');
+  dot(g, sh, 5.4, JK1); hand(g, w1, wv > .3, GL);
+  // cabeza
+  const Hp = (x, y) => [hd[0] + x, hd[1] + y], blink = (RD.t % 4.2) < .13 ? .12 : 1;
+  blob(g, [Hp(-10, -3), Hp(-8, -8), Hp(-3, -6.5), Hp(-1, -1), Hp(-4, 3), Hp(-9, 5)], HR);
+  blob(g, [Hp(-7.5, -9), Hp(1, -14.5), Hp(8.5, -9.5), Hp(9.8, -4.2), Hp(9.4, -1.4), Hp(13.6, 3.2), Hp(13.6, 3.2), Hp(10.2, 4.6), Hp(10.9, 6), Hp(10, 7.2), Hp(10.6, 8.2), Hp(9.3, 9.6), Hp(9.8, 12.2), Hp(7, 13.6), Hp(0, 13.2), Hp(-5.5, 8.5), Hp(-9.8, 0)], SK);
+  g.globalAlpha = .35; blob(g, [Hp(1, 2), Hp(6, 2.6), Hp(7.4, 5), Hp(3, 5.6)], '#ee8f78'); g.globalAlpha = .22; blob(g, [Hp(-5, 1), Hp(-1, 3), Hp(0, 10), Hp(-5, 8)], '#a86a48'); g.globalAlpha = 1;
+  blob(g, [Hp(-4.6, -.6), Hp(-2.4, -2), Hp(-.4, .6), Hp(-1.4, 4.6), Hp(-3.6, 4.8)], SD); blob(g, [Hp(-3.6, .4), Hp(-2, 1.2), Hp(-2.2, 3.2)], '#c28a66');
+  g.save(); g.translate(hd[0] + 5.3, hd[1] - .8); g.scale(1, blink);
+  blob(g, [[-2.2, .3], [-.8, -1.2], [1.4, -1.3], [2.6, .1], [.8, 1.1]], '#fbfbf8'); dot(g, [.9, -.1], 1.25, '#5a3a28'); dot(g, [1, -.1], .62, '#100b09'); dot(g, [.5, -.5], .4, '#fff');
+  limb(g, [[-2.2, .3], [-.8, -1.2], [1.4, -1.3], [2.6, .1]], .6, '#4a352b'); g.restore();
+  blob(g, [Hp(2.4, -4.2), Hp(5.4, -5.4), Hp(8.8, -4.4), Hp(8.6, -3.6), Hp(5.4, -4.2)], HR);
+  blob(g, [Hp(-4.8, 1), Hp(-5.6, 7.5), Hp(-1.5, 12.6), Hp(5, 14.8), Hp(11.2, 13.2), Hp(11.8, 9.8), Hp(10.6, 8.7), Hp(9.2, 8.9), Hp(8, 7.4), Hp(7, 5.6), Hp(3.5, 4.4), Hp(-1, 2.6)], BD);
+  blob(g, [Hp(7.6, 4.4), Hp(10.4, 4.5), Hp(11.8, 5.4), Hp(10.8, 6.2), Hp(8.6, 5.7)], '#3a291e');
+  blob(g, [Hp(9.8, 6.4), Hp(11.4, 6.6), Hp(10.4, 7.3)], '#b8635a'); blob(g, [Hp(9.8, 7.5), Hp(11, 7.7), Hp(10, 8.6)], '#c9726a');
+  const hq = g.createRadialGradient(hd[0] - 4, hd[1] - 11, 1, hd[0] - .5, hd[1] - 3, 16); hq.addColorStop(0, '#5d6977'); hq.addColorStop(1, '#171c22');
+  blob(g, [Hp(-12, 3.6), Hp(-13, -3), Hp(-10, -10.5), Hp(-2, -15.2), Hp(6, -14.2), Hp(11, -9), Hp(12, -4.6), Hp(7.6, -5.8), Hp(2, -6.4), Hp(-3, -4.8), Hp(-7.6, -1.4)], hq);
+  g.strokeStyle = 'rgba(255,255,255,.32)'; g.lineWidth = 1.1; g.beginPath(); g.moveTo(hd[0] - 9, hd[1] - 7.6); g.quadraticCurveTo(hd[0] - 3, hd[1] - 13.6, hd[0] + 5, hd[1] - 12.2); g.stroke();
+  for (let i = 0; i < 3; i++) limb(g, [Hp(-6 + i * 3.8, -10.6 - i * .5), Hp(-3.4 + i * 3.8, -11.6 - i * .5)], 1.1, '#0b0e12');
+  g.strokeStyle = A; g.lineWidth = 1.4; g.beginPath(); g.moveTo(hd[0] - 11.6, hd[1] - 3); g.quadraticCurveTo(hd[0] - 11, hd[1] - 9.5, hd[0] - 4.5, hd[1] - 13.6); g.stroke();
+  limb(g, [Hp(-6.4, 1), Hp(-5.4, 8.4), Hp(-.6, 11.6), Hp(5.8, 12.4)], 1, '#0d1116'); dot(g, Hp(-.6, 11.6), 1.4, '#a9b4bf');
+}
 function drawScooter(g, A, ang, blur, beam){
-  g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.ellipse(0, 3, 60, 5, 0, 0, 6.283); g.fill();
-  if (beam) { const q = g.createLinearGradient(38, 0, 170, 0); q.addColorStop(0, A); q.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = .2 * beam; g.fillStyle = q; g.beginPath(); g.moveTo(38, -32); g.lineTo(170, -12); g.lineTo(170, -56); g.closePath(); g.fill(); g.globalAlpha = 1; }
-  [-39, 39].forEach(x => { g.save(); g.translate(x, -10);
-    g.strokeStyle = '#05080d'; g.lineWidth = 5; g.beginPath(); g.arc(0, 0, 9, 0, 6.283); g.stroke();
-    g.strokeStyle = '#5b6f82'; g.lineWidth = 1.4; g.beginPath(); g.arc(0, 0, 6.3, 0, 6.283); g.stroke();
-    g.rotate(ang); g.globalAlpha = Math.max(.15, 1 - blur); g.beginPath(); for (let k = 0; k < 5; k++) { g.moveTo(0, 0); g.lineTo(6.3 * Math.cos(k * 1.2566), 6.3 * Math.sin(k * 1.2566)); } g.stroke();
-    g.globalAlpha = 1; dot(g, [0, 0], 1.8, A); g.restore(); });
-  g.strokeStyle = '#22364d'; g.lineWidth = 3; g.beginPath(); g.arc(-39, -10, 13, 3.5, 5.9); g.stroke();
-  limb(g, [[-36, -15], [26, -15]], 5, '#1d2d42');
-  g.shadowColor = A; g.shadowBlur = 6; limb(g, [[-34, -12.2], [24, -12.2]], 1.2, A); g.shadowBlur = 0;
-  limb(g, [[39, -10], [31, -26]], 4, '#2a3b50'); limb(g, [[31, -26], [25, -93]], 4.5, '#2a3b50');
-  dot(g, [29, -40], 2.6, '#0c131c'); dot(g, [26, -94], 3.4, '#0c131c');
-  g.shadowColor = A; g.shadowBlur = 6; limb(g, [[21, -98], [28, -98]], 2.6, A); dot(g, [37, -32], 2.6, A); g.shadowBlur = 0;
-  limb(g, [[-54, -10], [-54, -15]], 2.6, '#ff4d5e');
+  const K = '#12171e', OR = '#ff7a1a', st = t => [33 - 11 * t, -32 - 76 * t];
+  g.fillStyle = 'rgba(0,0,0,.4)'; g.beginPath(); g.ellipse(0, 3, 62, 5, 0, 0, 6.283); g.fill();
+  if (beam) { const q = g.createLinearGradient(40, 0, 175, 0); q.addColorStop(0, A); q.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = .2 * beam; g.fillStyle = q; g.beginPath(); g.moveTo(40, -36); g.lineTo(175, -14); g.lineTo(175, -60); g.closePath(); g.fill(); g.globalAlpha = 1; }
+  [-40, 40].forEach(x => { g.save(); g.translate(x, -12);
+    g.strokeStyle = '#06090d'; g.lineWidth = 6.5; g.beginPath(); g.arc(0, 0, 8.8, 0, 6.283); g.stroke();
+    g.strokeStyle = '#6a7b8c'; g.lineWidth = 1.3; g.beginPath(); g.arc(0, 0, 5.4, 0, 6.283); g.stroke();
+    g.rotate(ang); g.globalAlpha = Math.max(.15, 1 - blur); g.beginPath(); for (let k = 0; k < 5; k++) { g.moveTo(0, 0); g.lineTo(5.4 * Math.cos(k * 1.2566), 5.4 * Math.sin(k * 1.2566)); } g.stroke();
+    g.globalAlpha = 1; dot(g, [0, 0], 2, '#2b3441'); dot(g, [0, 0], .9, A); g.restore(); });
+  g.strokeStyle = K; g.lineWidth = 3.2; g.lineCap = 'round'; [[-40, 3.35, 5.95], [40, 3.45, 5.85]].forEach(f => { g.beginPath(); g.arc(f[0], -12, 15, f[1], f[2]); g.stroke(); });
+  limb(g, [[-36, -17.5], [28, -17.5]], 5.2, K); limb(g, [[-33, -20.2], [24, -20.2]], 1.6, '#2b3441');
+  g.shadowColor = A; g.shadowBlur = 5; limb(g, [[-33, -14.2], [24, -14.2]], 1, A); g.shadowBlur = 0;
+  limb(g, [[-56, -15], [-56, -20]], 2.8, '#ff4d5e');
+  limb(g, [[40, -12], [33, -32]], 5.4, K); limb(g, [[38.6, -17], [35.6, -26]], 2.4, OR);
+  limb(g, [st(0), st(1)], 5, K); limb(g, [st(.1), st(.36)], 2.6, OR);
+  g.strokeStyle = OR; g.lineWidth = 1.1; g.beginPath(); for (let i = 0; i <= 40; i++) { const t = i / 40, p = st(.04 + t * .9); g.lineTo(p[0] + Math.sin(t * 24) * 1.1 + 3.4, p[1]); } g.stroke();
+  dot(g, st(.2), 3, '#aeb8c3'); dot(g, st(.2), 1.2, '#4b5663');
+  limb(g, [[22, -108], [14, -105.5]], 1.8, '#1e252e'); dot(g, [22.5, -108], 3.6, K); limb(g, [[19, -111], [24, -111]], 2.6, '#1e252e');
+  g.shadowColor = A; g.shadowBlur = 6; limb(g, [[19.5, -112.5], [23.5, -112.5]], 1.2, A); dot(g, [38, -37], 2.4, A); g.shadowBlur = 0;
 }
 function roadFrame(ts){
   if (!document.body.classList.contains('road-on')) { RD.on = false; return; }
@@ -730,7 +953,7 @@ function roadFrame(ts){
     if (b >= 2.5) { vt = 24; bx = Math.pow(b - 2.5, 2) * 170; }
     if (b > 4.8) { document.body.classList.remove('road-on'); RD.mode = 'rest'; RD.pose = 1; RD.vis = 0; return; } }
   RD.vis += (vt - RD.vis) * Math.min(1, dt * 3); RD.pose += (tgt - RD.pose) * Math.min(1, dt * 5);
-  const vis = RD.vis, p = RD.pose; RD.trav += vis / 3.6 * dt; RD.wa += vis / 3.6 * 10 * dt; RD.ph += dt * (3 + vis * .15);
+  const vis = RD.vis, p = RD.pose; RD.trav += vis / 3.6 * dt; RD.wa += vis / 3.6 * 100 / 12 * dt; RD.ph += dt * (3 + vis * .15);
   const A = RD.acc, s = Math.min(H * .0031, W * .0027), PXM = s * 100, gy = H - 58, yr = gy - 12, off = RD.trav * PXM, cx = W * .30;
   g.globalAlpha = 1; g.shadowBlur = 0;
   let q = g.createLinearGradient(0, 0, 0, yr); q.addColorStop(0, '#02060d'); q.addColorStop(1, '#0d2a40'); g.fillStyle = q; g.fillRect(0, 0, W, yr + 1);
@@ -749,21 +972,12 @@ function roadFrame(ts){
   // personaje y patineta
   g.save(); g.translate(cx + bx, gy); g.scale(s, s);
   drawScooter(g, A, RD.wa, Math.min(1, vis / 14), 1 - p * .7);
-  const bob = Math.sin(RD.ph) * 1.5 * Math.min(1, vis / 12) * (1 - p), br = Math.sin(RD.t * 1.8) * .9 * p;
-  const hip = lp([-6, -92 + bob], [Math.sin(RD.t * .6) * .8, -86], p), sh = lp([3, -146 + bob * .6], [2, -142 + br], p), hd = lp([8, -166 + bob * .6], [6, -160 + br], p);
-  const fr = lp([-20, -17], [-14, 6], p), ff = lp([8, -17], [10, 6], p);
-  const h1 = lp([25, -93], [22 + Math.sin(RD.t * 10) * 7, -188], wv), h2 = lp([22, -93], [8, -98], p);
-  const [k1, a1] = ik(hip, fr, 46, 47, -1), [k2, a2] = ik(hip, ff, 46, 47, -1), [e1, w1] = ik(sh, h1, 30, 28, 1), [e2, w2] = ik(sh, h2, 30, 28, 1);
-  const J = '#12a89a', SK = '#c68b66', shoe = (a, c) => limb(g, [[a[0] - 3, a[1] - 1], [a[0] + 8, a[1] - 1]], 6, c);
-  limb(g, [hip, k1, a1], 14, '#0e1a2b'); shoe(a1, '#aebbc6');
-  limb(g, [sh, e2, w2], 9, '#0e7f75'); dot(g, w2, 3.6, SK);
-  const nk = [sh[0] - 1, sh[1] - 5];
-  if (vis > 2) { const k = Math.min(1, vis / 10), sp = []; for (let i = 0; i < 7; i++) sp.push([nk[0] - i * 5 * k - i * .5, nk[1] + 3 + Math.sin(RD.ph * 2 - i * .9) * 2.5 * k]); limb(g, sp, 4, '#ff5d73'); }
-  limb(g, [hip, sh], 26, J); limb(g, [[hip[0] - 9, hip[1] - 6], [sh[0] - 10, sh[1] + 8]], 2, A);
-  limb(g, [hip, k2, a2], 14, '#16263d'); shoe(a2, '#dfe8ee');
-  limb(g, [sh, e1, w1], 9, J); dot(g, w1, 3.6, SK);
-  dot(g, hd, 10.5, SK); g.fillStyle = '#e9f2f7'; g.beginPath(); g.arc(hd[0] - .5, hd[1] - 1, 12, 2.98, 6.43); g.closePath(); g.fill();
-  g.strokeStyle = A; g.lineWidth = 2; g.beginPath(); g.arc(hd[0] - .5, hd[1] - 1, 12, 4.35, 5.5); g.stroke(); dot(g, [hd[0] + 5, hd[1] + 1], 1.2, '#1b1b1b');
+  const bob = Math.sin(RD.ph) * 1.5 * Math.min(1, vis / 12) * (1 - p), br = Math.sin(RD.t * 1.8) * .9 * p, lean = Math.min(1, vis / 20) * (1 - p);
+  const hip = lp([-6, -107 + bob], [Math.sin(RD.t * .6) * .8, -86], p), sh = lp([3 + lean * 2.5, -158 + bob * .6], [2, -139.5 + br], p), hd = lp([8 + lean * 3.5, -175.5 + bob * .6], [6, -155.5 + br], p);
+  const fr = lp([-20, -24.8], [-14, 2], p), ff = lp([9, -24.8], [10, 2], p);
+  const gr = [24, -106], h1 = lp(gr, [22 + Math.sin(RD.t * 10) * 7, -188], wv), h2 = lp([20, -106], [-2, -88], p);
+  const [k1, a1] = ik(hip, fr, 44, 45, -1), [k2, a2] = ik(hip, ff, 44, 45, -1), [e1, w1] = ik(sh, h1, 30, 29, 1), [e2, w2] = ik(sh, h2, 30, 29, 1);
+  drawHuman(g, A, {hip, sh, hd, k1, a1, k2, a2, e1, w1, e2, w2, wv, vis, p});
   g.restore();
   // textos
   g.textAlign = 'right'; const mono = 'ui-monospace,"SF Mono",Menlo,monospace', over = S.vLim > 0 && vis > S.vLim, R = W - 18;
@@ -788,9 +1002,9 @@ function warmOn(){
   if (T.on || WARM != null || !('geolocation' in navigator)) return;
   WARM = navigator.geolocation.watchPosition(p => {
     if (T.on) return;
-    const a = Math.round(p.coords.accuracy);
+    const a = Math.round(p.coords.accuracy); LF = {lat:p.coords.latitude, lon:p.coords.longitude, t:Date.now()};
     $('gps').textContent = a <= 20 ? 'Señal GPS buena (±' + a + ' m). Listo para iniciar.' : 'Señal GPS ' + (a <= 60 ? 'regular' : 'débil') + ' (±' + a + ' m). Espera al aire libre.';
-    $('dbg').textContent = 'v11 · en espera · ±' + a + ' m';
+    $('dbg').textContent = 'v17 · en espera · ±' + a + ' m';
     mapPos(p.coords.latitude, p.coords.longitude);
   }, e => { $('gps').textContent = e.code === 1 ? 'Permiso de ubicación denegado. Actívalo en el navegador.' : 'Buscando señal GPS…'; },
   {enableHighAccuracy:true, maximumAge:0, timeout:60000});
