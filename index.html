@@ -3,158 +3,114 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Monitor de patineta</title>
+<title>Rodar</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Patineta">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#0e1b20">
+<meta name="apple-mobile-web-app-title" content="Rodar">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#0e1013">
 
 <style>
-:root{--bg:linear-gradient(#e6eefb,#f5f8fd);--bgc:#eef3fb;--fg:#1d2440;--mut:#6f7a91;--card:#fff;--line:#e3e9f4;--ring:#bfe3fb;--track:#b6c4d9;--accent:#5fa8ea;--bar:#a9cdf6;--warn:#e08a00;--bad:#d4382c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#05070b;--bgc:#05070b;--fg:#fff;--mut:#8f95a1;--card:#1b1c1e;--line:#2a2c30;--ring:#bde6ff;--track:#222c3a;--accent:#7cc4ff;--bar:#2f5f9a;--warn:#ffb020;--bad:#ff6b5e}}
-:root[data-theme="dark"]{--bg:#05070b;--bgc:#05070b;--fg:#fff;--mut:#8f95a1;--card:#1b1c1e;--line:#2a2c30;--ring:#bde6ff;--track:#222c3a;--accent:#7cc4ff;--bar:#2f5f9a;--warn:#ffb020;--bad:#ff6b5e}
+@font-face{font-family:"Barlow Condensed";font-weight:600;font-display:swap;src:url(barlow-condensed-600.woff2) format("woff2")}
+@font-face{font-family:Barlow;font-weight:400;font-display:swap;src:url(barlow-400.woff2) format("woff2")}
+@font-face{font-family:Barlow;font-weight:600;font-display:swap;src:url(barlow-600.woff2) format("woff2")}
+:root{--bg:#0e1013;--bgc:#0e1013;--card:#171a1f;--card2:#20242b;--line:rgba(255,255,255,.08);--fg:#f2efe9;--mut:#98a0a9;--accent:#ff7a1a;--onacc:#1d0e02;--bar:#8a4311;--ring:#2a2f36;--track:#2a2f36;--warn:#ffcf5c;--bad:#ff5a5f;--b1:#262b33;--b2:#1b1f25;--b3:#13161a;--cond:"Barlow Condensed","Arial Narrow",ui-sans-serif,system-ui,sans-serif;--sans:Barlow,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:dark}
+:root[data-theme="light"]{--bg:#f3f0ea;--bgc:#f3f0ea;--card:#fff;--card2:#f5f1ea;--line:rgba(24,26,30,.1);--fg:#1b1d21;--mut:#6a707a;--accent:#e8620a;--onacc:#fff;--bar:#ffd2ae;--ring:#d8d3c8;--track:#d8d3c8;--warn:#c98a00;--bad:#d4332c;--b1:#fff;--b2:#f6f1e8;--b3:#ebe4d7;color-scheme:light}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);background-color:var(--bgc);color:var(--fg);font:16px/1.4 ui-rounded,"SF Pro Rounded",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
-main{max-width:520px;margin:0 auto;padding:10px 16px 30px}
-.num{font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.gauge{position:relative;width:min(88vw,380px);margin:0 auto}
-.gauge svg{display:block;width:100%;height:auto}
-.gv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
-.gl{font-size:1rem;color:#4b6a8c;margin-bottom:-2px}
-#spd{font-size:clamp(3.6rem,19vw,5.4rem);line-height:1;color:#1d2440}
-.wb{position:absolute;right:2%;bottom:7%;width:27%;aspect-ratio:1;border-radius:50%;background:var(--card);border:6px solid var(--track);display:flex;flex-direction:column;align-items:center;justify-content:center}
-.wb b{font-size:1.9rem;line-height:1}.wb span{font-size:.95rem;color:var(--mut)}
-.range{position:relative;overflow:hidden;border-radius:16px;background:var(--card);margin-top:14px}
-.fill{position:absolute;inset:0 auto 0 0;background:var(--bar);width:100%}
-#range[data-lvl="low"] .fill{background:var(--warn)}#range[data-lvl="crit"] .fill{background:var(--bad)}
-.rin{position:relative;display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:12px 14px}
-.rin b{font-size:1.5rem}
-.cap{text-align:center;color:var(--mut);font-size:.85rem;margin:8px 0}
-.bat{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:10px}
-.bat button{width:52px;height:52px;border-radius:50%;padding:0;font-size:1.7rem}
-.bi{display:flex;align-items:baseline;gap:2px}
-.bi input{width:4ch;font-size:2.4rem;background:transparent;color:var(--fg);border:0;text-align:center;padding:0}
-.bi span{font-size:1.4rem;color:var(--mut)}
-.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
-.card{background:var(--card);border-radius:22px;padding:16px}
-.cv{font-size:2.2rem;line-height:1.1}.cv small{font-size:1rem;color:var(--mut);margin-left:4px;font-weight:500}
-.cl{margin-top:8px;color:var(--mut);font-size:.95rem}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 16px/1.4 var(--sans);min-height:100vh;padding-top:env(safe-area-inset-top,0px)}
+main{max-width:560px;margin:0 auto;padding:6px 16px calc(88px + env(safe-area-inset-bottom,0px))}
 button,select,input{font:inherit}
-button{background:var(--card);color:var(--fg);border:0;border-radius:16px;padding:14px;cursor:pointer}
-button.primary{background:var(--accent);color:#0b1b33;font-weight:700}
-.ctl{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-top:16px}
-.ctl .danger{grid-column:1/-1;color:var(--bad);box-shadow:inset 0 0 0 2px var(--bad)}
-.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
-.seg button.on{background:var(--accent);color:#0b1b33;font-weight:700}
-details{margin-top:14px;background:var(--card);border-radius:18px;padding:12px 14px}
-summary{cursor:pointer;font-weight:600}
-label{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:.9rem}
-label input,label select{width:110px;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bgc);color:var(--fg)}
-.note{font-size:.8rem;color:var(--mut);margin-top:10px}.sub{font-size:.8rem;color:var(--mut);margin-top:4px}
-.h{display:grid;grid-template-columns:1.3fr .8fr 1fr 1fr;gap:6px;font-size:.8rem;padding:6px 0;border-top:1px solid var(--line)}
-#sum[hidden]{display:none}#sum{margin:12px 0}#sum h2{margin:0 0 6px;font-size:1.1rem}
-.srow{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
-#sum button{width:100%;margin-top:10px;background:var(--bgc)}
-:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.low{color:var(--warn)}.crit{color:var(--bad)}
-.mapc{height:230px;border-radius:22px;overflow:hidden;margin:12px 0;background:var(--card)}
-.mapc[hidden]{display:none}
-.leaflet-container{font:inherit}
-#prof[hidden]{display:none}#prof{margin:12px 0}#chart{margin-bottom:10px}#chart .cl,#prof .cl{margin:0 0 6px}
-.ctl .wide{grid-column:1/-1}
-</style>
-<style>
-:root{--bg:#eef4f3;--bgc:#eef4f3;--fg:#14302f;--mut:#5d7776;--card:#fff;--line:#dbe7e5;--ring:#bfe6df;--track:#cfe0dd;--accent:#0f9d8a;--bar:#9fd8cd;--warn:#d98200;--bad:#cf3a2e;--ink:#10302c;--b1:#f3fbf9;--b2:#cdeee8;--b3:#a5ddd3;--onacc:#04241f}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1416;--bgc:#0b1416;--fg:#eaf6f4;--mut:#8fa9a6;--card:#142124;--line:#223437;--ring:#1f4b46;--track:#1c2f32;--accent:#3fd1b9;--bar:#1f6a60;--warn:#ffb020;--bad:#ff6b5e;--ink:#10302c;--b1:#e8faf6;--b2:#b9ece3;--b3:#8fd9cc;--onacc:#04241f}}
-:root[data-theme="dark"]{--bg:#0b1416;--bgc:#0b1416;--fg:#eaf6f4;--mut:#8fa9a6;--card:#142124;--line:#223437;--ring:#1f4b46;--track:#1c2f32;--accent:#3fd1b9;--bar:#1f6a60;--warn:#ffb020;--bad:#ff6b5e;--ink:#10302c;--b1:#e8faf6;--b2:#b9ece3;--b3:#8fd9cc;--onacc:#04241f}
-body{-webkit-tap-highlight-color:transparent}
-#spd{color:var(--ink)}.gl{color:#3f6b65}
+.num,.cv,#spd,.wb b,.rin b,.bi input{font-family:var(--cond);font-weight:600;font-variant-numeric:tabular-nums}
+h2.ph{margin:16px 0 6px;font:600 1.7rem/1.1 var(--cond);letter-spacing:.05em;text-transform:uppercase}
+.page{display:none}
+body[data-page="trip"] .page[data-p="trip"],body[data-page="map"] .page[data-p="map"],body[data-page="hist"] .page[data-p="hist"],body[data-page="set"] .page[data-p="set"]{display:block}
+.brand{display:flex;align-items:baseline;gap:8px;margin:6px 0 4px}
+.brand b{font:600 1.4rem/1 var(--cond);letter-spacing:.24em}.brand i{width:7px;height:7px;border-radius:50%;background:var(--accent)}.ver{margin-left:auto;color:var(--mut);font-size:.75rem}
+.gauge{position:relative;width:min(78vw,330px);margin:6px auto 0}.gauge svg{display:block;width:100%;height:auto}
+.gv{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.gl{font-size:.78rem;letter-spacing:.22em;color:var(--mut);text-transform:uppercase;margin-bottom:-2px}
+#spd{font-size:clamp(3.8rem,20vw,5.6rem);line-height:1;color:var(--fg)}
 #ball stop:nth-child(1){stop-color:var(--b1)}#ball stop:nth-child(2){stop-color:var(--b2)}#ball stop:nth-child(3){stop-color:var(--b3)}
-.card,.range,details{box-shadow:0 1px 2px rgba(10,40,36,.07)}
-.card{border-radius:18px;padding:14px}.cv{font-size:1.9rem}.cards{gap:10px}
-.mapc{border-radius:18px}details{margin-top:12px;border-radius:16px}summary{padding:4px 0;font-size:1.02rem}
-button{padding:15px;border-radius:14px;transition:transform .08s}button:active{transform:scale(.97)}
-button.primary,.seg button.on{background:var(--accent);color:var(--onacc)}
-.ctl{grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 14px}
-#go{grid-column:1/-1;padding:20px;font-size:1.2rem;border-radius:18px}
-.ctl .danger{grid-column:auto;font-size:.95rem}
-#shareLoc{background:transparent;color:var(--mut);box-shadow:inset 0 0 0 1px var(--line)}
-.seg{margin:12px 0 0}
-#gps{display:table;margin:10px auto;padding:7px 14px;border-radius:999px;background:var(--card);color:var(--fg);font-size:.9rem}
-#dbg{font-size:.75rem;opacity:.65;margin:0 0 4px}
-.riding #spd{font-size:clamp(4.4rem,25vw,6.6rem)}
-.riding #dir{display:none}
-#arc{transition:stroke-dasharray .35s ease-out}
-@media (prefers-reduced-motion:reduce){#arc{transition:none}}
-.more .card{background:var(--bgc);box-shadow:none}.more .cards{margin:12px 0 2px}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}}
-:root[data-theme="dark"] .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
-.range{margin-top:16px}
-main{position:relative}
-#gear{position:absolute;top:8px;right:12px;width:44px;height:44px;padding:0;border-radius:50%;display:grid;place-items:center;color:var(--mut);box-shadow:0 1px 2px rgba(10,40,36,.1);z-index:2}
-#gear svg{width:22px;height:22px}
-.sheet{position:fixed;inset:0;z-index:50;background:var(--bgc);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px calc(env(safe-area-inset-bottom,0px) + 24px)}
-.sheet[hidden]{display:none}.sheet-in{max-width:520px;margin:0 auto}
-.sheet-h{display:flex;justify-content:space-between;align-items:center;margin:4px 0 6px}
-.sheet-h h2{margin:0;font-size:1.3rem}.sheet-h button{padding:10px 16px}
-:root:not([data-theme="light"]),:root[data-theme="dark"]{--bg:#050a12;--bgc:#050a12;--fg:#e6f4ff;--mut:#7f99ad;--card:rgba(12,24,40,.72);--line:rgba(56,189,248,.2);--ring:#0e3a4d;--track:#143049;--accent:#22d3ee;--bar:#0f7a8f;--warn:#fbbf24;--bad:#ff5d73;--ink:#eaffff;--b1:#0b2536;--b2:#08192a;--b3:#050f1c;--onacc:#001a22}
-
-.gh{margin:20px 0 2px;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
-label{min-height:44px}
+.wb{position:absolute;right:2%;bottom:7%;width:26%;aspect-ratio:1;border-radius:50%;background:var(--card);border:5px solid var(--track);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.wb b{font-size:1.8rem;line-height:1}.wb span{font-size:.85rem;color:var(--mut)}
+.range{position:relative;overflow:hidden;border-radius:14px;background:var(--card);border:1px solid var(--line);margin-top:16px}
+.fill{position:absolute;left:0;top:0;bottom:0;background:var(--bar);width:100%}
+#range[data-lvl="low"] .fill{background:var(--warn);opacity:.55}#range[data-lvl="crit"] .fill{background:var(--bad);opacity:.6}
+.rin{position:relative;display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:13px 14px}
+.rin span{font-size:.92rem;color:var(--mut)}.rin b{font-size:1.6rem}
+.cap{text-align:center;color:var(--mut);font-size:.85rem;margin:8px 0}
+.bat{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:8px}
+.bat button{width:50px;height:50px;border-radius:50%;padding:0;font-size:1.6rem;line-height:1}
+.bi{display:flex;align-items:baseline;gap:2px}.bi input{width:4ch;font-size:2.7rem;background:transparent;color:var(--fg);border:0;text-align:center;padding:0}.bi span{font-size:1.3rem;color:var(--mut)}
+.low{color:var(--warn)}.crit{color:var(--bad)}
+#gps{display:table;margin:12px auto;padding:6px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--fg);font-size:.88rem}
+#dbg{font-size:.75rem;color:var(--mut);margin:14px 0 0;text-align:left}
+button{background:var(--card2);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:13px;cursor:pointer;transition:transform .08s}
+button:active{transform:scale(.98)}
+button.primary,#go{background:var(--accent);color:var(--onacc);border-color:transparent;font-weight:600}
+#go{grid-column:1/-1;padding:18px;font-size:1.15rem;letter-spacing:.04em;border-radius:14px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:14px 0 0;padding:4px;background:var(--card);border:1px solid var(--line);border-radius:14px}
+.seg button{background:transparent;border:0;padding:10px 4px}.seg button.on{background:var(--accent);color:var(--onacc);font-weight:600}
+.ctl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 14px}
+.ctl .wide{grid-column:1/-1}.ctl .danger{color:var(--bad);border-color:rgba(255,90,95,.35);font-size:.95rem}
+#shareLoc{background:transparent;color:var(--mut)}
+#sum[hidden]{display:none}#sum{margin:12px 0}#sum h2{margin:0 0 6px;font:600 1.3rem var(--cond);letter-spacing:.05em;text-transform:uppercase}
+.srow{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line)}#sum button{width:100%;margin-top:10px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.cv{font-size:2rem;line-height:1.05}.cv small{font-size:.95rem;color:var(--mut);margin-left:4px;font-weight:600}
+.cl{margin-top:6px;color:var(--mut);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
+.note{font-size:.82rem;color:var(--mut);margin:10px 0}.sub{font-size:.82rem;color:var(--mut);margin-top:4px}
+details.more{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px}
+details summary{cursor:pointer;font-weight:600}.more .card{background:var(--card2)}.more .cards{margin:12px 0 2px}
+label{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:46px;border-top:1px solid var(--line);font-size:.95rem}
+label input,label select{width:120px;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--fg)}
 label input[type=checkbox]{-webkit-appearance:none;appearance:none;width:48px!important;height:28px;padding:0;border:0;border-radius:14px;background:var(--track);position:relative;flex:none}
 label input[type=checkbox]::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .15s}
 label input[type=checkbox]:checked{background:var(--accent)}label input[type=checkbox]:checked::after{transform:translateX(20px)}
-.sheet{padding-top:0}.sheet-top{position:sticky;top:0;z-index:3;background:var(--bgc);padding:calc(env(safe-area-inset-top,0px) + 8px) 0 8px}
-.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}.tabs button{padding:10px 2px;font-size:.85rem}.tabs button.on{background:var(--accent);color:var(--onacc);font-weight:700}
-#menu summary{display:none}
-#menu details{display:none;background:none;border:0;box-shadow:none;padding:0;margin:0}
-#menu[data-tab="more"] details.more,#menu[data-tab="set"] details.t-set,#menu[data-tab="hist"] details.t-hist,#menu[data-tab="plan"] details.t-plan{display:block}
-:root:not([data-theme="light"]) body{background:radial-gradient(120% 55% at 50% -8%,#0d2a40 0,#050a12 62%),#050a12}
-:root:not([data-theme="light"]) #spd{color:var(--ink);text-shadow:0 0 18px rgba(34,211,238,.55)}
-:root:not([data-theme="light"]) .gl{color:var(--accent);letter-spacing:.3em;text-transform:uppercase;font-size:.72rem}
-:root:not([data-theme="light"]) #arc{filter:drop-shadow(0 0 6px var(--accent))}
-:root:not([data-theme="light"]) svg g[stroke]{stroke:var(--accent)}
-:root:not([data-theme="light"]) .wb{background:#08192a;border-color:var(--ring);box-shadow:0 0 12px rgba(34,211,238,.25)}
-:root:not([data-theme="light"]) .card,:root:not([data-theme="light"]) .range,:root:not([data-theme="light"]) #gps,:root:not([data-theme="light"]) #gear{background:var(--card);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
-:root:not([data-theme="light"]) .card{border-radius:10px}
-:root:not([data-theme="light"]) .cl{text-transform:uppercase;font-size:.68rem;letter-spacing:.08em}
-:root:not([data-theme="light"]) .num{font-family:ui-monospace,"SF Mono",Menlo,monospace}
-:root:not([data-theme="light"]) .fill{box-shadow:0 0 10px var(--accent)}
-:root:not([data-theme="light"]) button.primary{box-shadow:0 0 18px rgba(34,211,238,.4)}
-:root:not([data-theme="light"]) #go{letter-spacing:.14em;text-transform:uppercase}
-#road{display:none;width:calc(100% + 32px);margin:0 -16px;height:280px;border:0;border-radius:0;background:transparent;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 88%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 88%,transparent 100%)}
-.road-on #road{display:block}.road-on .gauge{display:none}
-#map{height:280px}
-.leaflet-tile-pane{filter:none!important}
-.leaflet-overlay-pane path{filter:drop-shadow(0 0 4px rgba(34,211,238,.8))}
-.leaflet-control-attribution{background:rgba(5,10,18,.6)!important;color:#7f99ad!important;font-size:9px}.leaflet-control-attribution a{color:#7f99ad!important}
-.me{width:28px;height:28px;position:relative}
-.me::before{content:"";position:absolute;inset:0;border-radius:50%;background:rgba(34,211,238,.28);animation:pulse 2s ease-out infinite}
-.me b{position:absolute;left:50%;top:50%;width:0;height:0;margin:-11px 0 0 -8px;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:20px solid #22d3ee;filter:drop-shadow(0 0 5px #22d3ee)}
-@keyframes pulse{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.5);opacity:0}}
-@media (prefers-reduced-motion:reduce){.me::before{animation:none}}
-.maplibregl-marker.me{position:absolute}
-.maplibregl-ctrl-attrib{background:rgba(5,10,18,.6)!important;color:#7f99ad!important;font-size:10px}.maplibregl-ctrl-attrib a{color:#7f99ad!important}
-#map{height:300px}
-#nav{display:flex;align-items:center;gap:14px;margin:6px 56px 10px 0;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
-#nav[hidden]{display:none}#nav svg{width:54px;height:54px;color:var(--accent);flex:none;transition:transform .25s}
-#nav .nt{flex:1;min-width:0;display:grid;gap:2px}#nav b{font-size:1.9rem;line-height:1}#navT{font-size:.95rem}#navS{color:var(--mut);font-size:.8rem}#nav button{padding:8px 12px}
-:root:not([data-theme="light"]) #nav svg{filter:drop-shadow(0 0 6px var(--accent))}
+.gh{margin:24px 0 2px;font:600 .78rem var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.h{display:grid;grid-template-columns:1.3fr .8fr 1fr 1fr;gap:6px;font-size:.85rem;padding:9px 0;border-top:1px solid var(--line)}
+#exp,#clr,#clrAll,#chGo{display:block;width:100%;margin-top:8px}
+#chart .cl,#prof .cl{margin:0 0 6px}#prof[hidden]{display:none}#prof{margin:12px 0}
+#top{position:sticky;top:0;z-index:25;padding:env(safe-area-inset-top,0px) 16px 0}
+#nav{display:flex;align-items:center;gap:14px;max-width:528px;margin:8px auto 0;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+#nav[hidden]{display:none}#nav svg{width:52px;height:52px;color:var(--accent);flex:none;transition:transform .25s}
+#nav .nt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}#nav b{font-size:1.9rem;line-height:1}#navT{font-size:.95rem}#navS{color:var(--mut);font-size:.8rem}#nav button{padding:8px 12px}
+#road{display:none;width:calc(100% + 32px);margin:0 -16px;height:280px;border:0;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 88%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 9%,#000 88%,transparent 100%)}
+.road-on #road{display:block}.road-on .gauge{display:none}.riding #dir{display:none}
+#map{height:min(64vh,540px);min-height:340px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--card);margin-top:8px}#map[hidden]{display:none}
+#dest{display:block;width:100%;margin-top:12px;padding:16px;font-size:1.05rem}
+#tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(4,1fr);background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+#tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0 8px;background:none;border:0;border-radius:0;color:var(--mut);font:600 .72rem var(--sans);letter-spacing:.05em}
+#tabbar button.on{color:var(--accent)}#tabbar svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sheet{position:fixed;left:0;right:0;top:0;bottom:0;z-index:50;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 24px)}
+.sheet[hidden]{display:none}.sheet-in{max-width:560px;margin:0 auto}
+.sheet-top{position:sticky;top:0;z-index:3;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 8px) 0 8px}
+.sheet-h{display:flex;justify-content:space-between;align-items:center}.sheet-h h2{margin:0;font:600 1.5rem var(--cond);letter-spacing:.04em;text-transform:uppercase}.sheet-h button{padding:9px 16px}
 #q{width:100%;margin-top:8px;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-size:1rem}
 .rl button{display:block;width:100%;text-align:left;margin:6px 0}#rprev{margin-top:12px}#rprev .sub{margin:6px 0 12px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.me{width:28px;height:28px;position:relative}.maplibregl-marker.me{position:absolute}
+.me::before{content:"";position:absolute;left:0;top:0;right:0;bottom:0;border-radius:50%;background:rgba(255,122,26,.28);animation:pulse 2s ease-out infinite}
+.me b{position:absolute;left:50%;top:50%;width:0;height:0;margin:-11px 0 0 -8px;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:20px solid #ff7a1a}
+@keyframes pulse{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+.maplibregl-ctrl-attrib,.leaflet-control-attribution{background:rgba(14,16,19,.65)!important;color:#98a0a9!important;font-size:10px}.maplibregl-ctrl-attrib a,.leaflet-control-attribution a{color:#98a0a9!important}
+.leaflet-tile-pane{filter:none!important}
+@media (prefers-reduced-motion:reduce){.me::before{animation:none}#arc{transition:none}button{transition:none}}
+#arc{transition:stroke-dasharray .35s ease-out}
 </style>
 </head>
-<body>
+<body data-page="trip">
+<header id="top"><div id="nav" hidden><svg id="navA" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 9h-4.5v9h-5v-9H5z" fill="currentColor"/></svg><div class="nt"><b id="navD" class="num">—</b><span id="navT"></span><small id="navS"></small></div><button id="navStop" type="button" aria-label="Cancelar navegación">✕</button></div></header>
 <main>
-  <button id="gear" type="button" aria-label="Abrir menú"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.8 10.2L22.4 10.5L22.4 13.5L19.8 13.8L18.8 16.2L20.4 18.3L18.3 20.4L16.2 18.8L13.8 19.8L13.5 22.4L10.5 22.4L10.2 19.8L7.8 18.8L5.7 20.4L3.6 18.3L5.2 16.2L4.2 13.8L1.6 13.5L1.6 10.5L4.2 10.2L5.2 7.8L3.6 5.7L5.7 3.6L7.8 5.2L10.2 4.2L10.5 1.6L13.5 1.6L13.8 4.2L16.2 5.2L18.3 3.6L20.4 5.7L18.8 7.8Z M12 8.8a3.2 3.2 0 1 0 0 6.4a3.2 3.2 0 1 0 0-6.4Z" fill="currentColor" fill-rule="evenodd"/></svg></button>
-  <div id="nav" hidden><svg id="navA" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 9h-4.5v9h-5v-9H5z" fill="currentColor"/></svg><div class="nt"><b id="navD" class="num">—</b><span id="navT"></span><small id="navS"></small></div><button id="navStop" type="button" aria-label="Cancelar navegación">✕</button></div>
-  <canvas id="road" aria-hidden="true"></canvas>
-  <div class="gauge">
+  <section class="page" data-p="trip">
+    <div class="brand"><b>RODAR</b><i></i><span class="ver">v18</span></div>
+    <canvas id="road" aria-hidden="true"></canvas>
+    <div class="gauge">
     <svg viewBox="0 0 300 300" aria-hidden="true">
       <defs><radialGradient id="ball" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#f2faff"/><stop offset=".6" stop-color="#c3e4fb"/><stop offset="1" stop-color="#9fcdf5"/></radialGradient></defs>
       <circle cx="150" cy="150" r="143" fill="none" stroke="var(--ring)" stroke-width="12"/>
@@ -165,7 +121,7 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
     <div class="gv"><div class="gl">km / h</div><div id="spd" class="num">0.0</div></div>
     <div class="wb"><b id="w" class="num">0</b><span>W</span></div>
   </div>
-  <div id="range" class="range"><div id="fill" class="fill"></div><div class="rin"><span>Autonomía restante</span><b class="num"><span id="rk">—</span> km</b><b class="num"><span id="pctv">100</span>%</b></div></div>
+    <div id="range" class="range"><div id="fill" class="fill"></div><div class="rin"><span>Autonomía restante</span><b class="num"><span id="rk">—</span> km</b><b class="num"><span id="pctv">100</span>%</b></div></div>
   <p id="whkm" class="cap">Con tu consumo reciente</p>
   <div class="bat">
     <button id="dn" aria-label="Bajar 1 por ciento">−</button>
@@ -174,28 +130,45 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
   </div>
   <p id="wh" class="cap">% según la app de Segway</p>
   <p id="gps" class="cap">GPS apagado. Toca Iniciar viaje.</p>
-  <p id="dbg" class="cap">v17 · sin lecturas todavía</p>
-
-  <div class="seg" id="dir" role="group" aria-label="Dirección del viaje">
+  
+    <div class="seg" id="dir" role="group" aria-label="Dirección del viaje">
     <button data-d="ida">Ida</button><button data-d="vuelta">Vuelta</button><button data-d="otro">Otra ruta</button>
   </div>
-
-  <div class="ctl">
+    <div class="ctl">
     <button id="go" class="primary">Iniciar viaje</button>
     <button id="reset">Reiniciar</button>
     <button id="fin" class="danger">Finalizar viaje</button>
-    <button id="dest" class="wide" type="button">Navegar a un destino</button>
     <button id="shareLoc" class="wide">Compartir mi ubicación</button>
   </div>
-  <div id="sum" class="card" hidden></div>
-  <div id="map" class="mapc"></div>
-  <div id="prof" class="card" hidden></div>
-  <div class="cards"><div class="card"><div class="cv num"><span id="dist">0</span><small>km</small></div><div class="cl">Este trayecto</div></div><div class="card"><div class="cv num"><span id="mov">0</span><small></small></div><div class="cl">Duración de conducción</div></div><div class="card"><div class="cv num"><span id="rt">—</span><small>h:mm</small></div><div class="cl">Tiempo restante</div></div><div class="card"><div class="cv num"><span id="arr">—</span><small>%</small></div><div class="cl">Llegarás con</div></div></div>
-  <div id="navsheet" class="sheet" hidden><div class="sheet-in"><div class="sheet-top"><div class="sheet-h"><h2>¿A dónde vamos?</h2><button id="navX" type="button">Cerrar</button></div><input id="q" type="search" placeholder="Busca un lugar o una dirección" autocomplete="off"></div>
-  <div id="nres" class="rl"></div><div id="rprev" class="card" hidden></div><p id="navmsg" class="note"></p></div></div>
-<div id="menu" class="sheet" hidden><div class="sheet-in"><div class="sheet-top"><div class="sheet-h"><h2>Menú</h2><button id="menuX" type="button">Cerrar</button></div><div class="tabs" id="tabs"><button type="button" data-t="more">Datos</button><button type="button" data-t="set">Ajustes</button><button type="button" data-t="hist">Historial</button><button type="button" data-t="plan">Carga</button></div></div>
-  <details class="more" open><summary>Más datos del trayecto</summary><div class="cards"><div class="card"><div class="cv num"><span id="vmax">0</span><small>km/h</small></div><div class="cl">Velocidad máx.</div></div><div class="card"><div class="cv num"><span id="avg">0</span><small>km/h</small></div><div class="cl">Velocidad media</div></div><div class="card"><div class="cv num"><span id="rem">—</span><small>km</small></div><div class="cl">Falta de ruta</div></div><div class="card"><div class="cv num"><span id="used">0</span><small>Wh</small></div><div class="cl">Energía usada</div></div><div class="card"><div class="cv num"><span id="asc">0</span><small>m</small></div><div class="cl">Subida acumulada</div></div><div class="card"><div class="cv num"><span id="desc">0</span><small>m</small></div><div class="cl">Bajada acumulada</div></div></div></details>
-<details class="t-set" open><summary>Ajustes</summary>
+    <div id="sum" class="card" hidden></div>
+    <div class="cards"><div class="card"><div class="cv num"><span id="dist">0</span><small>km</small></div><div class="cl">Este trayecto</div></div><div class="card"><div class="cv num"><span id="mov">0</span><small></small></div><div class="cl">Duración de conducción</div></div><div class="card"><div class="cv num"><span id="rt">—</span><small>h:mm</small></div><div class="cl">Tiempo restante</div></div><div class="card"><div class="cv num"><span id="arr">—</span><small>%</small></div><div class="cl">Llegarás con</div></div></div>
+  
+    <details class="more"><summary>Más datos del trayecto</summary><div class="cards"><div class="card"><div class="cv num"><span id="vmax">0</span><small>km/h</small></div><div class="cl">Velocidad máx.</div></div><div class="card"><div class="cv num"><span id="avg">0</span><small>km/h</small></div><div class="cl">Velocidad media</div></div><div class="card"><div class="cv num"><span id="rem">—</span><small>km</small></div><div class="cl">Falta de ruta</div></div><div class="card"><div class="cv num"><span id="used">0</span><small>Wh</small></div><div class="cl">Energía usada</div></div><div class="card"><div class="cv num"><span id="asc">0</span><small>m</small></div><div class="cl">Subida acumulada</div></div><div class="card"><div class="cv num"><span id="desc">0</span><small>m</small></div><div class="cl">Bajada acumulada</div></div></div></details>
+  </section>
+  <section class="page" data-p="map">
+    <div id="map" class="mapc"></div>
+    <button id="dest" class="primary" type="button">Navegar a un destino</button>
+    <div id="prof" class="card" hidden></div>
+  </section>
+  <section class="page" data-p="hist">
+    <h2 class="ph">Historial</h2>
+    <div id="chart"></div>
+    <div id="hist" class="note">Aún no hay viajes guardados.</div>
+    <p class="note">Los viajes se guardan al pausar. Con 2 km o más guardados en una dirección, la app usa tu consumo real de esa dirección como punto de partida.</p>
+    <button id="exp" type="button">Exportar CSV</button>
+    <button id="clr" type="button">Borrar historial</button>
+    <button id="clrAll" type="button">Borrar todos mis datos</button>
+  
+    <h2 class="ph">Carga</h2>
+    <label>Cargador (W)<input id="chW" type="number" inputmode="decimal"></label>
+    <label>Recorrido de mañana (km, ida y vuelta)<input id="chKm" type="number" inputmode="decimal" step="0.5"></label>
+    <label>Batería ahora (%)<input id="chNow" type="number" inputmode="numeric"></label>
+    <button id="chGo" type="button" style="margin-top:10px;width:100%">Calcular</button>
+    <p id="chOut" class="note">Usa tu consumo real de los viajes guardados, la reserva de Ajustes y supone un 85 % de eficiencia del cargador.</p>
+  
+  </section>
+  <section class="page" data-p="set">
+    <h2 class="ph">Ajustes</h2>
     <h3 class="gh">Batería</h3><label>Batería
       <select id="capSel"><option value="187.2">Interna (187 Wh)</option><option value="374.4">Con externa (374 Wh)</option><option value="custom">Otra…</option></select>
     </label>
@@ -222,27 +195,17 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
     <p class="note">El consumo inicial es un valor de partida: ajústalo con tus datos. A medida que bajas de porcentaje y avanzas, la app lo reemplaza por tu consumo real de los últimos 3 km. Actualiza el % en las paradas, no en marcha.</p>
     <p class="note">Privacidad: tu ubicación se procesa solo en este celular. La app no tiene cuentas ni cookies y no envía tu ubicación ni tus viajes a ningún servidor propio. Si usas la navegación, tu punto de partida, el destino y lo que escribas en el buscador se envían a OpenRouteService para calcular la ruta (y, si falla, a servidores de respaldo como FOSSGIS o Photon). Si el mapa está activado, tu celular descarga la librería del mapa (jsDelivr o cdnjs) y los mosaicos del mapa (CARTO y OpenStreetMap, o Esri si eliges satélite), y esos servicios pueden ver tu dirección IP y la zona que consultas; desactiva el mapa en Ajustes para evitarlo. Solo guarda tus ajustes y viajes en este navegador, y puedes borrarlos en Historial.</p>
     <p class="note">La autonomía y la potencia son estimaciones y no reemplazan el indicador de batería de la patineta.</p>
-  </details>
-<details class="t-hist" open><summary>Historial</summary>
-    <div id="chart"></div>
-    <div id="hist" class="note">Aún no hay viajes guardados.</div>
-    <p class="note">Los viajes se guardan al pausar. Con 2 km o más guardados en una dirección, la app usa tu consumo real de esa dirección como punto de partida.</p>
-    <button id="exp" type="button">Exportar CSV</button>
-    <button id="clr" type="button">Borrar historial</button>
-    <button id="clrAll" type="button">Borrar todos mis datos</button>
-  </details>
-<details class="t-plan" open><summary>Planificador de carga</summary>
-    <label>Cargador (W)<input id="chW" type="number" inputmode="decimal"></label>
-    <label>Recorrido de mañana (km, ida y vuelta)<input id="chKm" type="number" inputmode="decimal" step="0.5"></label>
-    <label>Batería ahora (%)<input id="chNow" type="number" inputmode="numeric"></label>
-    <button id="chGo" type="button" style="margin-top:10px;width:100%">Calcular</button>
-    <p id="chOut" class="note">Usa tu consumo real de los viajes guardados, la reserva de Ajustes y supone un 85 % de eficiencia del cargador.</p>
-  </details>
-</div></div>
+  
+    <p id="dbg" class="cap">v18 · sin lecturas todavía</p>
+  </section>
 </main>
+<nav id="tabbar" aria-label="Secciones"><button type="button" data-p="trip" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17a8 8 0 1116 0"/><path d="M12 17l4-6"/><circle cx="12" cy="17" r="1"/></svg><span>Viaje</span></button><button type="button" data-p="map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg><span>Mapa</span></button><button type="button" data-p="hist"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg><span>Historial</span></button><button type="button" data-p="set"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h9M18 7h1M5 17h1M10 17h9"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Ajustes</span></button></nav>
+<div id="navsheet" class="sheet" hidden><div class="sheet-in"><div class="sheet-top"><div class="sheet-h"><h2>¿A dónde vamos?</h2><button id="navX" type="button">Cerrar</button></div><input id="q" type="search" placeholder="Busca un lugar o una dirección" autocomplete="off"></div>
+  <div id="nres" class="rl"></div><div id="rprev" class="card" hidden></div><p id="navmsg" class="note"></p></div></div>
 
 <script>
 const $ = id => document.getElementById(id);
+const nf = (x, d) => x.toFixed(d).replace('.', ',');
 const S = {cap:187.2, res:5, base:7.1, voice:true, map:true, kmEvery:5, voiceName:'', rate:0.95};
 try { Object.assign(S, JSON.parse(localStorage.getItem('mp-settings') || '{}')); } catch(e) {}
 if (!S.baseV) { if (S.base === 8) S.base = 7.1; S.baseV = 1; }
@@ -269,13 +232,13 @@ function render(){
   const energy = Math.max(0, S.cap * (T.pct - S.res) / 100);
   const rangeKm = energy / e;
   const avg = T.mov > 60 && T.dist > 300 ? T.dist / T.mov * 3.6 : 0;
-  $('spd').textContent = kmh.toFixed(1); $('arc').style.strokeDasharray = (556 * Math.min(1, kmh / 35)) + ' 741'; $('vmax').textContent = T.max.toFixed(0);
+  $('spd').textContent = nf(kmh, 1); $('arc').style.strokeDasharray = (556 * Math.min(1, kmh / 35)) + ' 741'; $('vmax').textContent = T.max.toFixed(0);
   $('w').textContent = kmh > 1 ? Math.round(e * kmh) : 0;
-  $('rk').textContent = rangeKm.toFixed(1);
+  $('rk').textContent = nf(rangeKm, 1);
   $('rt').textContent = avg > 3 ? fmtH(rangeKm / avg * 3600) : '—';
-  $('whkm').textContent = e.toFixed(1) + ' Wh/km en ' + DL[T.dir];
+  $('whkm').textContent = nf(e, 1) + ' Wh/km en ' + DL[T.dir];
   $('wh').textContent = Math.round(S.cap * T.pct / 100) + ' Wh disponibles' + (T.on ? ' (estimado: corrige con + y −)' : '');
-  $('dist').textContent = (T.dist / 1000).toFixed(1);
+  $('dist').textContent = nf(T.dist / 1000, 1);
   $('mov').textContent = fmtDur(T.mov);
   $('avg').textContent = avg.toFixed(0);
   $('used').textContent = Math.round((T.startPct - T.pct) * S.cap / 100);
@@ -284,7 +247,7 @@ function render(){
   const p = $('pct'); p.className = 'num' + (T.pct <= 10 ? ' crit' : T.pct <= 20 ? ' low' : '');
   $('range').dataset.lvl = T.pct <= 10 ? 'crit' : T.pct <= 20 ? 'low' : ''; $('pctv').textContent = T.pct; $('fill').style.width = T.pct + '%';
   nowPlaying(rangeKm, avg, kmh);
-  const ar = arrival(); $('rem').textContent = ar ? ar.km.toFixed(1) : '—'; $('arr').textContent = ar ? Math.max(0, Math.round(ar.pct)) : '—';
+  const ar = arrival(); $('rem').textContent = ar ? nf(ar.km, 1) : '—'; $('arr').textContent = ar ? Math.max(0, Math.round(ar.pct)) : '—';
   moveProfile(ar);
   if (ar && T.on && ar.pct < 10 && !T.said.arr) { T.said.arr = 1; say('Atención: con este ritmo llegarás con aproximadamente ' + Math.max(0, Math.round(ar.pct)) + ' por ciento de batería.'); }
 }
@@ -332,7 +295,7 @@ function setPct(v, auto){
 
 function onPos(p){
   const c = p.coords; LF = {lat:c.latitude, lon:c.longitude, t:Date.now()};
-  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v17 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
+  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v18 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
   if (c.accuracy > 60) { $('gps').textContent = 'Señal GPS débil (±' + Math.round(c.accuracy) + ' m)'; return; }
   const prev = T.last, dt = prev ? (p.timestamp - prev.t) / 1000 : 0;
   if (prev && dt < 0.8 && c.speed == null) return;
@@ -405,12 +368,12 @@ function finish(){
   if (!T.id && !T.on) { $('gps').textContent = 'No hay un viaje en curso.'; return; }
   if (T.on) pause(); else saveTrip();
   navEnd();
-  RD.km = (T.dist / 1000).toFixed(1); if (document.body.classList.contains('road-on')) { RD.mode = 'bye'; RD.bt = 0; roadStart(); }
+  RD.km = nf(T.dist / 1000, 1); if (document.body.classList.contains('road-on')) { RD.mode = 'bye'; RD.bt = 0; roadStart(); }
   const km = T.dist / 1000, drop = T.startPct - T.pct, wh = drop * S.cap / 100;
   const avg = T.mov > 0 ? T.dist / T.mov * 3.6 : 0;
-  const rows = [['Distancia', km.toFixed(2) + ' km'], ['Tiempo en marcha', fmtH(T.mov) + ' h'], ['Velocidad media', avg.toFixed(1) + ' km/h'], ['Velocidad máx.', T.max.toFixed(0) + ' km/h'],
+  const rows = [['Distancia', nf(km, 2) + ' km'], ['Tiempo en marcha', fmtH(T.mov) + ' h'], ['Velocidad media', nf(avg, 1) + ' km/h'], ['Velocidad máx.', T.max.toFixed(0) + ' km/h'],
     ['Batería', T.startPct + ' % a ' + T.pct + ' %'], ['Energía usada', Math.round(wh) + ' Wh']];
-  if (drop > 0 && km >= 0.3) rows.push(['Consumo', (wh / km).toFixed(1) + ' Wh/km']);
+  if (drop > 0 && km >= 0.3) rows.push(['Consumo', nf(wh / km, 1) + ' Wh/km']);
   rows.push(['Sube / Baja', Math.round(T.asc) + ' m / ' + Math.round(T.desc) + ' m']);
   const rt = T.pts.length > 10 ? {pts:T.pts.slice()} : null;
   showSummary(rows, T.dist >= 200 ? 'Guardado en el historial (' + DL[T.dir] + ').' : 'Viaje muy corto: no se guardó en el historial.', rt, T.dir);
@@ -483,7 +446,7 @@ function renderHist(){
   if (!H.length) { el.textContent = 'Aún no hay viajes guardados.'; return; }
   H.slice(0, 10).forEach(t => {
     const r = document.createElement('div'); r.className = 'h';
-    [new Date(t.id).toLocaleDateString('es-CO', {day:'numeric', month:'short'}) + ' ' + DL[t.dir], t.km.toFixed(1) + ' km', t.whkm ? t.whkm.toFixed(1) + ' Wh/km' : 'sin dato', '↑' + t.asc + ' ↓' + t.desc + ' m']
+    [new Date(t.id).toLocaleDateString('es-CO', {day:'numeric', month:'short'}) + ' ' + DL[t.dir], nf(t.km, 1) + ' km', t.whkm ? nf(t.whkm, 1) + ' Wh/km' : 'sin dato', '↑' + t.asc + ' ↓' + t.desc + ' m']
       .forEach(x => { const s = document.createElement('span'); s.textContent = x; r.appendChild(s); });
     el.appendChild(r);
   });
@@ -549,14 +512,14 @@ function drawProfile(){
   const sy = v => 84 - (v - mn) / Math.max(1, mx - mn) * 76;
   const d = P.map((q, i) => (i ? 'L' : 'M') + (q[2] / D * 300).toFixed(1) + ' ' + sy(ys[i]).toFixed(1)).join('');
   PS = {D, sy};
-  el.innerHTML = '<div class="cl">Perfil de altura de la ruta (' + (D / 1000).toFixed(1) + ' km, de ' + Math.round(mn) + ' a ' + Math.round(mx) + ' m relativos)</div><svg viewBox="0 0 300 90" width="100%" role="img" aria-label="Perfil de altura"><path d="' + d + 'L300 90L0 90Z" fill="var(--bar)" opacity=".5"/><path d="' + d + '" fill="none" stroke="var(--accent)" stroke-width="2.5"/><circle id="pm" r="5" cx="-10" cy="-10" fill="var(--bad)"/></svg><div class="sub" id="pt">Ruta guardada. Inicia el viaje sobre la ruta para ver tu avance.</div>';
+  el.innerHTML = '<div class="cl">Perfil de altura de la ruta (' + nf(D / 1000, 1) + ' km, de ' + Math.round(mn) + ' a ' + Math.round(mx) + ' m relativos)</div><svg viewBox="0 0 300 90" width="100%" role="img" aria-label="Perfil de altura"><path d="' + d + 'L300 90L0 90Z" fill="var(--bar)" opacity=".5"/><path d="' + d + '" fill="none" stroke="var(--accent)" stroke-width="2.5"/><circle id="pm" r="5" cx="-10" cy="-10" fill="var(--bad)"/></svg><div class="sub" id="pt">Ruta guardada. Inicia el viaje sobre la ruta para ver tu avance.</div>';
   el.hidden = false;
 }
 function moveProfile(ar){
   const r = RT[T.dir], c = $('pm'); if (!r || !c || !PS) return;
   const q = r.pts[Math.min(T.ri, r.pts.length - 1)];
   c.setAttribute('cx', (q[2] / PS.D * 300).toFixed(1)); c.setAttribute('cy', PS.sy(q[3] - q[4]).toFixed(1));
-  if (ar) $('pt').textContent = 'Te faltan ' + ar.km.toFixed(1) + ' km: subir ' + Math.round(ar.asc) + ' m y bajar ' + Math.round(ar.desc) + ' m.';
+  if (ar) $('pt').textContent = 'Te faltan ' + nf(ar.km, 1) + ' km: subir ' + Math.round(ar.asc) + ' m y bajar ' + Math.round(ar.desc) + ' m.';
 }
 function renderChart(){
   const el = $('chart'), a = H.filter(t => t.whkm).slice(0, 12).reverse();
@@ -589,7 +552,7 @@ function plan(){
   const target = Math.ceil(need), miss = Math.max(0, target - now) / 100 * S.cap;
   if (miss <= 0) { out.textContent = 'Con ' + now + ' % ya te alcanza: necesitas unos ' + target + ' %.'; return; }
   const mins = Math.round(miss / (W * 0.85) * 60);
-  out.textContent = 'Para ' + km + ' km necesitas salir con al menos ' + target + ' % (consumo de ' + e.toFixed(1) + ' Wh/km). Te faltan ' + Math.round(miss) + ' Wh: carga unos ' + Math.floor(mins / 60) + ' h ' + String(mins % 60).padStart(2, '0') + ' min con tu cargador de ' + W + ' W.';
+  out.textContent = 'Para ' + km + ' km necesitas salir con al menos ' + target + ' % (consumo de ' + nf(e, 1) + ' Wh/km). Te faltan ' + Math.round(miss) + ' Wh: carga unos ' + Math.floor(mins / 60) + ' h ' + String(mins % 60).padStart(2, '0') + ' min con tu cargador de ' + W + ' W.';
 }
 $('mix').checked = !!S.mix; $('mix').onchange = e => { S.mix = e.target.checked; save(); };
 $('vLim').value = S.vLim || 0; $('vLim').onchange = e => { S.vLim = Math.max(0, +e.target.value || 0); save(); };
@@ -615,7 +578,7 @@ function initLeaflet(){
     MAP = L.map('map', {zoomControl:false}).setView(c0, 14);
     setTiles();
     RL = L.polyline([], {color:'#8b95ab', weight:4, dashArray:'6 8'}).addTo(MAP);
-    TR = L.polyline([], {color:'#22d3ee', weight:5, lineCap:'round'}).addTo(MAP); drawRoute();
+    TR = L.polyline([], {color:'#ff7a1a', weight:5, lineCap:'round'}).addTo(MAP); drawRoute();
     MK = L.marker(c0, {icon: L.divIcon({className:'', html:'<div class="me"><b></b></div>', iconSize:[28, 28], iconAnchor:[14, 14]}), interactive:false, keyboard:false}).addTo(MAP);
     if (T.last) mapPos(T.last.c.latitude, T.last.c.longitude);
   } catch(e) {} });
@@ -664,12 +627,12 @@ function glInit(){
   requestAnimationFrame(glLoop);
 }
 function glLayers(){ try {
-  const m = GLM, A = '#22d3ee';
+  const m = GLM, A = '#ff7a1a';
   m.addSource('ref', {type:'geojson', data:glLine(refCoords())}); m.addSource('trk', {type:'geojson', data:glLine(TC)});
   m.addLayer({id:'ref', type:'line', source:'ref', paint:{'line-color':'#8b95ab', 'line-width':3, 'line-dasharray':[2, 2]}});
   m.addSource('nav', {type:'geojson', data:glLine(NAV.r ? NAV.r.pts : [])});
-  m.addLayer({id:'nav-g', type:'line', source:'nav', layout:{'line-cap':'round', 'line-join':'round'}, paint:{'line-color':'#c084fc', 'line-width':12, 'line-blur':6, 'line-opacity':.5}});
-  m.addLayer({id:'nav', type:'line', source:'nav', layout:{'line-cap':'round', 'line-join':'round'}, paint:{'line-color':'#c084fc', 'line-width':5}});
+  m.addLayer({id:'nav-g', type:'line', source:'nav', layout:{'line-cap':'round', 'line-join':'round'}, paint:{'line-color':'#4cc9f0', 'line-width':12, 'line-blur':6, 'line-opacity':.5}});
+  m.addLayer({id:'nav', type:'line', source:'nav', layout:{'line-cap':'round', 'line-join':'round'}, paint:{'line-color':'#4cc9f0', 'line-width':5}});
   m.addLayer({id:'trk-g', type:'line', source:'trk', layout:{'line-cap':'round', 'line-join':'round'}, paint:{'line-color':A, 'line-width':11, 'line-blur':7, 'line-opacity':.45}});
   m.addLayer({id:'trk', type:'line', source:'trk', layout:{'line-cap':'round', 'line-join':'round'}, paint:{'line-color':A, 'line-width':4}});
   const b = (m.getStyle().layers || []).find(l => l['source-layer'] === 'building' && l.type === 'fill');
@@ -686,7 +649,7 @@ function glFix(lat, lon, hd){
 function glLoop(ts){
   requestAnimationFrame(glLoop);
   const dt = G.last ? Math.min(.1, (ts - G.last) / 1000) : 0; G.last = ts;
-  if (!GLM || !G.tgt || $('map').hidden) return;
+  if (!GLM || !G.tgt || $('map').hidden || document.body.dataset.page !== 'map') return;
   const k = 1 - Math.exp(-dt * 4);
   G.pos[0] += (G.tgt[0] - G.pos[0]) * k; G.pos[1] += (G.tgt[1] - G.pos[1]) * k;
   G.br += (((G.tb - G.br + 540) % 360) - 180) * (1 - Math.exp(-dt * 2.5));
@@ -745,10 +708,10 @@ function navDraw(){
   const pts = NAV.r ? NAV.r.pts : [];
   try {
     if (GLM) { const s = GLM.getSource('nav'); if (s) s.setData(glLine(pts)); }
-    else if (MAP) { if (!NVL) NVL = L.polyline([], {color:'#c084fc', weight:6}).addTo(MAP); NVL.setLatLngs(pts.map(p => [p[1], p[0]])); }
+    else if (MAP) { if (!NVL) NVL = L.polyline([], {color:'#4cc9f0', weight:6}).addTo(MAP); NVL.setLatLngs(pts.map(p => [p[1], p[0]])); }
     if (NAV.mk) { NAV.mk.remove(); NAV.mk = null; }
-    if (NAV.on && NAV.dest) { if (GLM) NAV.mk = new maplibregl.Marker({color:'#c084fc'}).setLngLat([NAV.dest.lon, NAV.dest.lat]).addTo(GLM);
-      else if (MAP) NAV.mk = L.circleMarker([NAV.dest.lat, NAV.dest.lon], {radius:9, color:'#fff', weight:3, fillColor:'#c084fc', fillOpacity:1}).addTo(MAP); }
+    if (NAV.on && NAV.dest) { if (GLM) NAV.mk = new maplibregl.Marker({color:'#4cc9f0'}).setLngLat([NAV.dest.lon, NAV.dest.lat]).addTo(GLM);
+      else if (MAP) NAV.mk = L.circleMarker([NAV.dest.lat, NAV.dest.lon], {radius:9, color:'#fff', weight:3, fillColor:'#4cc9f0', fillOpacity:1}).addTo(MAP); }
   } catch(e) {}
 }
 function cumOf(P){ const c = [0]; for (let i = 1; i < P.length; i++) c.push(c[i - 1] + hav({latitude:P[i - 1][1], longitude:P[i - 1][0]}, {latitude:P[i][1], longitude:P[i][0]})); return c; }
@@ -780,16 +743,16 @@ function navUpdate(lat, lon, acc){ try {
   if (rem < 25) { say('Has llegado a tu destino.'); navEnd(); return; }
   const mins = Math.max(1, Math.round(NAV.r.dur * rem / NAV.r.dist / 60)), arr = Math.max(0, Math.round(T.pct - rem / 1000 * whPerKm() / S.cap * 100));
   $('navA').style.transform = 'rotate(' + st.ang + 'deg)';
-  $('navD').textContent = dn < 1000 ? Math.round(dn / 10) * 10 + ' m' : (dn / 1000).toFixed(1) + ' km';
+  $('navD').textContent = dn < 1000 ? Math.round(dn / 10) * 10 + ' m' : nf(dn / 1000, 1) + ' km';
   $('navT').textContent = st.text;
-  $('navS').textContent = (rem / 1000).toFixed(1) + ' km · ' + mins + ' min · llegas con ' + arr + ' %';
+  $('navS').textContent = nf(rem / 1000, 1) + ' km · ' + mins + ' min · llegas con ' + arr + ' %';
 } catch(e) {} }
 function navSheet(o){ $('navsheet').hidden = !o; document.body.style.overflow = o ? 'hidden' : ''; if (o) { $('navmsg').textContent = ''; $('q').focus(); } }
 function navPreview(){
   const p = NAV.pre, el = $('rprev'); el.textContent = ''; if (!p) { el.hidden = true; return; }
   const km = p.r.dist / 1000, arr = Math.max(0, Math.round(T.pct - km * baseFor(T.dir) / S.cap * 100));
   const h = document.createElement('b'); h.textContent = p.dest.label; el.appendChild(h);
-  const d = document.createElement('div'); d.className = 'sub'; d.textContent = km.toFixed(1) + ' km · ' + Math.max(1, Math.round(p.r.dur / 60)) + ' min · llegarías con ' + arr + ' % de batería'; el.appendChild(d);
+  const d = document.createElement('div'); d.className = 'sub'; d.textContent = nf(km, 1) + ' km · ' + Math.max(1, Math.round(p.r.dur / 60)) + ' min · llegarías con ' + arr + ' % de batería'; el.appendChild(d);
   const g = document.createElement('button'); g.className = 'primary'; g.type = 'button'; g.textContent = 'Iniciar navegación'; g.onclick = navStart; el.appendChild(g);
   el.hidden = false;
 }
@@ -806,12 +769,9 @@ $('q').oninput = e => { clearTimeout(qT); const v = e.target.value.trim(); NAV.p
 $('dest').onclick = () => navSheet(true); $('navX').onclick = () => navSheet(false); $('navStop').onclick = () => { say('Navegación cancelada.'); navEnd(); };
 $('orsKey').value = S.orsKey || ''; $('orsKey').onchange = e => { S.orsKey = e.target.value.trim(); save(); };
 initMap();
-function menuOpen(o){ $('menu').hidden = !o; document.body.style.overflow = o ? 'hidden' : ''; if (o) $('menu').scrollTop = 0; }
-$('gear').onclick = () => menuOpen(true); $('menuX').onclick = () => menuOpen(false);
-addEventListener('keydown', e => { if (e.key === 'Escape') menuOpen(false); });
 addEventListener('pagehide', saveTrip);
 
-const RD = {on:false, vis:0, trav:0, last:0, acc:'#22d3ee', mode:'rest', pose:1, ph:0, t:0, bt:0, wa:0, km:'0.0'};
+const RD = {on:false, vis:0, trav:0, last:0, acc:'#ff7a1a', mode:'rest', pose:1, ph:0, t:0, bt:0, wa:0, km:'0.0'};
 const lp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 const hash = n => Math.abs(Math.sin(n * 127.1) * 43758.5453) % 1;
 function ik(a, b, l1, l2, dir){
@@ -823,7 +783,7 @@ function ik(a, b, l1, l2, dir){
 function limb(g, pts, w, c){ g.strokeStyle = c; g.lineWidth = w; g.lineCap = g.lineJoin = 'round'; g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.stroke(); }
 function dot(g, p, r, c){ g.fillStyle = c; g.beginPath(); g.arc(p[0], p[1], r, 0, 6.283); g.fill(); }
 function roadStart(){
-  RD.acc = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '').trim() || '#22d3ee';
+  RD.acc = (getComputedStyle(document.documentElement).getPropertyValue('--accent') || '').trim() || '#ff7a1a';
   if (RD.on) return; RD.on = true; RD.last = 0; requestAnimationFrame(roadFrame);
 }
 function tap(g, a, b, w1, w2, c, c2){
@@ -956,19 +916,19 @@ function roadFrame(ts){
   const vis = RD.vis, p = RD.pose; RD.trav += vis / 3.6 * dt; RD.wa += vis / 3.6 * 100 / 12 * dt; RD.ph += dt * (3 + vis * .15);
   const A = RD.acc, s = Math.min(H * .0031, W * .0027), PXM = s * 100, gy = H - 58, yr = gy - 12, off = RD.trav * PXM, cx = W * .30;
   g.globalAlpha = 1; g.shadowBlur = 0;
-  let q = g.createLinearGradient(0, 0, 0, yr); q.addColorStop(0, '#02060d'); q.addColorStop(1, '#0d2a40'); g.fillStyle = q; g.fillRect(0, 0, W, yr + 1);
+  let q = g.createLinearGradient(0, 0, 0, yr); q.addColorStop(0, '#0a0b0e'); q.addColorStop(1, '#2b180d'); g.fillStyle = q; g.fillRect(0, 0, W, yr + 1);
   q = g.createRadialGradient(W * .6, yr, 0, W * .6, yr, W * .6); q.addColorStop(0, A); q.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = .28; g.fillStyle = q; g.fillRect(0, 0, W, yr + 1); g.globalAlpha = 1;
   g.fillStyle = '#cfefff'; for (let k = 0; k < 28; k++) { g.globalAlpha = .25 + .5 * Math.abs(Math.sin(RD.t * (.5 + hash(k)) + k)); g.fillRect(hash(k + 3) * W, hash(k + 9) * yr * .6, 1.4, 1.4); } g.globalAlpha = 1;
-  [[.55, 34, .012, .02, '#0a1d2e'], [.78, 24, .02, .06, '#0c2438']].forEach(([yy, am, f, sc, col]) => { g.fillStyle = col; g.beginPath(); g.moveTo(0, yr);
+  [[.55, 34, .012, .02, '#15181d'], [.78, 24, .02, .06, '#1c2026']].forEach(([yy, am, f, sc, col]) => { g.fillStyle = col; g.beginPath(); g.moveTo(0, yr);
     for (let x = 0; x <= W; x += 6) { const u = (x + off * sc) * f; g.lineTo(x, yr - am * (.55 + .3 * Math.sin(u * 6) + .15 * Math.sin(u * 14 + 1.7)) - 18 * yy); } g.lineTo(W, yr); g.closePath(); g.fill(); });
-  const bw = 26, n0 = Math.floor(off * .12 / bw); g.fillStyle = '#0b1c2c';
+  const bw = 26, n0 = Math.floor(off * .12 / bw); g.fillStyle = '#101318';
   for (let i = -1; i < W / bw + 2; i++) { const n = i + n0, x = i * bw - (off * .12) % bw, bh = 16 + 46 * hash(n * 1.7); g.fillRect(x, yr - bh, bw - 4, bh);
-    g.fillStyle = A; g.globalAlpha = .5; for (let j = 0; j < bh / 9; j++) if (hash(n * 9 + j) > .55) g.fillRect(x + 4 + (j % 2) * 8, yr - bh + 5 + j * 9, 3, 3); g.globalAlpha = 1; g.fillStyle = '#0b1c2c'; }
-  q = g.createLinearGradient(0, yr, 0, H); q.addColorStop(0, '#0a1626'); q.addColorStop(1, '#030710'); g.fillStyle = q; g.fillRect(0, yr, W, H - yr);
+    g.fillStyle = '#ffb870'; g.globalAlpha = .5; for (let j = 0; j < bh / 9; j++) if (hash(n * 9 + j) > .55) g.fillRect(x + 4 + (j % 2) * 8, yr - bh + 5 + j * 9, 3, 3); g.globalAlpha = 1; g.fillStyle = '#101318'; }
+  q = g.createLinearGradient(0, yr, 0, H); q.addColorStop(0, '#15181c'); q.addColorStop(1, '#08090b'); g.fillStyle = q; g.fillRect(0, yr, W, H - yr);
   g.shadowColor = A; g.shadowBlur = 8; g.fillStyle = A; g.fillRect(0, yr, W, 2); g.shadowBlur = 0;
   g.fillStyle = '#e8fbff'; g.globalAlpha = .75; for (let x = -(off % 80); x < W; x += 80) g.fillRect(x, gy + 36, 34, 3); g.globalAlpha = 1;
-  for (let x = -(off % 230); x < W; x += 230) { limb(g, [[x, yr], [x, yr - 24]], 2, '#2a3b50'); g.shadowColor = A; g.shadowBlur = 8; dot(g, [x, yr - 25], 2.6, A); g.shadowBlur = 0; }
-  if (vis > 9) { g.strokeStyle = '#eaffff'; g.lineWidth = 1.2; g.globalAlpha = Math.min(.25, vis / 80); for (let j = 0; j < 7; j++) { const x = W - ((off * 1.8 + j * 97) % (W + 90)), y = yr - 40 + j * 16 + hash(j) * 8; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 24 + vis * 1.6, y); g.stroke(); } g.globalAlpha = 1; }
+  for (let x = -(off % 230); x < W; x += 230) { limb(g, [[x, yr], [x, yr - 24]], 2, '#3a4048'); g.shadowColor = A; g.shadowBlur = 8; dot(g, [x, yr - 25], 2.6, A); g.shadowBlur = 0; }
+  if (vis > 9) { g.strokeStyle = '#f2efe9'; g.lineWidth = 1.2; g.globalAlpha = Math.min(.25, vis / 80); for (let j = 0; j < 7; j++) { const x = W - ((off * 1.8 + j * 97) % (W + 90)), y = yr - 40 + j * 16 + hash(j) * 8; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 24 + vis * 1.6, y); g.stroke(); } g.globalAlpha = 1; }
   // personaje y patineta
   g.save(); g.translate(cx + bx, gy); g.scale(s, s);
   drawScooter(g, A, RD.wa, Math.min(1, vis / 14), 1 - p * .7);
@@ -980,22 +940,25 @@ function roadFrame(ts){
   drawHuman(g, A, {hip, sh, hd, k1, a1, k2, a2, e1, w1, e2, w2, wv, vis, p});
   g.restore();
   // textos
-  g.textAlign = 'right'; const mono = 'ui-monospace,"SF Mono",Menlo,monospace', over = S.vLim > 0 && vis > S.vLim, R = W - 18;
+  g.textAlign = 'right'; const mono = '"Barlow Condensed","Arial Narrow",ui-sans-serif,system-ui,sans-serif', over = S.vLim > 0 && vis > S.vLim, R = W - 18;
   if (RD.mode === 'bye') { const b = RD.bt, al = Math.min(1, Math.max(0, (b - .3) * 2)) * Math.min(1, Math.max(0, (3 - b) * 2));
-    g.globalAlpha = al; g.fillStyle = '#eaffff'; g.shadowColor = A; g.shadowBlur = 16; g.font = '700 ' + Math.round(H * .075) + 'px ' + mono; g.fillText('¡HASTA PRONTO!', R, H * .30);
+    g.globalAlpha = al; g.fillStyle = '#f2efe9'; g.shadowColor = A; g.shadowBlur = 16; g.font = '700 ' + Math.round(H * .075) + 'px ' + mono; g.fillText('¡HASTA PRONTO!', R, H * .30);
     g.shadowBlur = 0; g.fillStyle = A; g.font = '600 ' + Math.round(H * .055) + 'px ' + mono; g.fillText(RD.km + ' km recorridos', R, H * .30 + H * .08); g.globalAlpha = 1; }
   else if (RD.mode === 'rest') { g.fillStyle = A; g.shadowColor = A; g.shadowBlur = 14; g.font = '700 ' + Math.round(H * .13) + 'px ' + mono; g.fillText('PAUSA', R, H * .34);
-    g.shadowBlur = 0; g.fillStyle = '#9fc4d8'; g.font = '600 ' + Math.round(H * .055) + 'px ' + mono; g.fillText('toca Reanudar', R, H * .34 + H * .09); }
-  else { g.fillStyle = over ? '#ff5d73' : '#eaffff'; g.shadowColor = over ? '#ff5d73' : A; g.shadowBlur = 18; g.font = '700 ' + Math.round(H * .30) + 'px ' + mono; g.fillText(String(Math.round(vis)), R, H * .40);
+    g.shadowBlur = 0; g.fillStyle = '#9aa0a8'; g.font = '600 ' + Math.round(H * .055) + 'px ' + mono; g.fillText('toca Reanudar', R, H * .34 + H * .09); }
+  else { g.fillStyle = over ? '#ff5d73' : '#f2efe9'; g.shadowColor = over ? '#ff5d73' : A; g.shadowBlur = 18; g.font = '700 ' + Math.round(H * .30) + 'px ' + mono; g.fillText(String(Math.round(vis)), R, H * .40);
     g.shadowBlur = 0; g.fillStyle = A; g.font = '600 ' + Math.round(H * .07) + 'px ' + mono; g.fillText('KM/H', R, H * .40 + H * .10); }
   if (RD.mode !== 'bye') { g.shadowBlur = 0; g.font = '600 ' + Math.round(H * .07) + 'px ' + mono; g.textAlign = 'left';
-    g.fillStyle = T.pct <= 10 ? '#ff5d73' : T.pct <= 20 ? '#fbbf24' : '#eaffff'; g.fillText('BAT ' + T.pct + '%', 12, H * .12);
-    g.fillStyle = '#9fc4d8'; g.fillText($('dist').textContent + ' km', 12, H - 42); g.textAlign = 'right'; g.fillText('AUT ' + $('rk').textContent + ' km', W - 12, H - 42); }
+    g.fillStyle = T.pct <= 10 ? '#ff5d73' : T.pct <= 20 ? '#ffcf5c' : '#f2efe9'; g.fillText('BAT ' + T.pct + '%', 12, H * .12);
+    g.fillStyle = '#9aa0a8'; g.fillText($('dist').textContent + ' km', 12, H - 42); g.textAlign = 'right'; g.fillText('AUT ' + $('rk').textContent + ' km', W - 12, H - 42); }
 }
 $('roadOn').checked = S.road !== false;
 $('roadOn').onchange = e => { S.road = e.target.checked; save(); if (T.id) { document.body.classList.toggle('road-on', S.road); RD.mode = T.on ? 'ride' : 'rest'; if (S.road) roadStart(); } };
-function menuTab(t){ $('menu').dataset.tab = t; document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t)); $('menu').scrollTop = 0; }
-document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => menuTab(b.dataset.t)); menuTab('more');
+function go(pg){
+  document.body.dataset.page = pg; document.querySelectorAll('#tabbar button').forEach(b => b.classList.toggle('on', b.dataset.p === pg)); window.scrollTo(0, 0);
+  if (pg === 'map') { if (G.tgt) G.pos = G.tgt.slice(); setTimeout(() => { try { if (GLM) GLM.resize(); if (MAP) MAP.invalidateSize(); } catch(e) {} }, 60); }
+}
+document.querySelectorAll('#tabbar button').forEach(b => b.onclick = () => go(b.dataset.p));
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && T.on) { startWatch(); try { navigator.wakeLock.request('screen').then(l => { T.lock = l; }).catch(() => {}); } catch(e) {} } });
 let WARM = null;
 function warmOn(){
@@ -1004,7 +967,7 @@ function warmOn(){
     if (T.on) return;
     const a = Math.round(p.coords.accuracy); LF = {lat:p.coords.latitude, lon:p.coords.longitude, t:Date.now()};
     $('gps').textContent = a <= 20 ? 'Señal GPS buena (±' + a + ' m). Listo para iniciar.' : 'Señal GPS ' + (a <= 60 ? 'regular' : 'débil') + ' (±' + a + ' m). Espera al aire libre.';
-    $('dbg').textContent = 'v17 · en espera · ±' + a + ' m';
+    $('dbg').textContent = 'v18 · en espera · ±' + a + ' m';
     mapPos(p.coords.latitude, p.coords.longitude);
   }, e => { $('gps').textContent = e.code === 1 ? 'Permiso de ubicación denegado. Actívalo en el navegador.' : 'Buscando señal GPS…'; },
   {enableHighAccuracy:true, maximumAge:0, timeout:60000});
@@ -1012,6 +975,7 @@ function warmOn(){
 function warmOff(){ if (WARM != null) { try { navigator.geolocation.clearWatch(WARM); } catch(e) {} WARM = null; } }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { if (!T.on && !T.id) warmOn(); } else warmOff(); });
 warmOn();
+try { document.fonts.load('600 20px "Barlow Condensed"'); } catch(e) {}
 setInterval(() => { if (T.on && T.last && Date.now() - T.last.t > 4000 && T.spd) { T.spd = 0; render(); } }, 1000);
 renderHist();
 render();
