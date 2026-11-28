@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rodar</title>
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash-750x1334.png">
+<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash-1170x2532.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -170,6 +172,26 @@ body,.card,.range,details.more,#tabbar,#nav,#gps,.seg{transition:background-colo
 .onb-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:340px}.onb-opts button{display:flex;flex-direction:column;gap:2px;padding:14px 8px;font-weight:600}.onb-opts small{color:var(--mut);font-weight:400}.onb-opts button.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .onb-dots{display:flex;justify-content:center;gap:8px;margin:8px 0 16px}.onb-dots i{width:8px;height:8px;border-radius:99px;background:var(--track);transition:width .3s,background .3s}.onb-dots i.on{width:24px;background:var(--accent)}
 .onb-actions{display:grid;grid-template-columns:1fr 2fr;gap:10px}.onb-actions button{padding:15px;font-size:1rem}
+
+html{-webkit-text-size-adjust:100%;overscroll-behavior:none}
+body{overscroll-behavior:none;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+label input,label select,#q{font-size:16px}
+canvas,svg,img{-webkit-touch-callout:none;-webkit-user-drag:none}
+button{touch-action:manipulation}.sheet{overscroll-behavior:contain}
+.brand{align-items:center}.ibtn{width:40px;height:40px;padding:0;border-radius:50%;display:grid;place-items:center;background:transparent;border:0;color:var(--mut)}.ibtn svg{width:22px;height:22px;fill:currentColor}
+.gauge{width:min(64vw,250px)}#road{height:250px}
+.rin{padding:11px 14px}.range{margin-top:12px}.bat{margin-top:6px}
+.seg{margin:10px 0 0;padding:3px}.seg button{padding:8px 4px;font-size:.9rem}
+#gps{margin:10px auto}
+.ctl{grid-template-columns:1fr;margin:12px 0 10px}.has-trip .ctl{grid-template-columns:1fr 1fr}
+#go{grid-column:1/-1}.has-trip #go{grid-column:auto}
+#fin{display:none;padding:18px;font-size:1.05rem;border-radius:14px}.has-trip #fin{display:block}
+.more>.cap{text-align:left;margin:10px 0 0}
+#actions{position:fixed;left:0;right:0;top:0;bottom:0;z-index:60;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .25s ease both}
+#actions[hidden]{display:none}
+.acts{width:100%;max-width:560px;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;animation:sheetUp .32s cubic-bezier(.2,.8,.2,1) both}
+.acts button{padding:16px;border-radius:14px;background:var(--card);font-size:1.02rem}#actX{background:var(--card2);font-weight:600}
 </style>
 </head>
 <body data-page="trip">
@@ -177,7 +199,7 @@ body,.card,.range,details.more,#tabbar,#nav,#gps,.seg{transition:background-colo
 <header id="top"><div id="nav" hidden><svg id="navA" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 9h-4.5v9h-5v-9H5z" fill="currentColor"/></svg><div class="nt"><b id="navD" class="num">—</b><span id="navT"></span><small id="navS"></small></div><button id="navStop" type="button" aria-label="Cancelar navegación">✕</button></div></header>
 <main>
   <section class="page" data-p="trip">
-    <div class="brand"><b>RODAR</b><i></i><span class="ver">v22</span></div>
+    <div class="brand"><b>RODAR</b><i></i><span class="ver">v23</span><button id="moreBtn" class="ibtn" type="button" aria-label="Más acciones"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button></div>
     <canvas id="road" aria-hidden="true"></canvas>
     <div class="gauge">
     <svg viewBox="0 0 300 300" aria-hidden="true">
@@ -191,29 +213,24 @@ body,.card,.range,details.more,#tabbar,#nav,#gps,.seg{transition:background-colo
     <div class="wb"><b id="w" class="num">0</b><span>W</span></div>
   </div>
     <div id="range" class="range"><div id="fill" class="fill"></div><div class="rin"><span>Autonomía restante</span><b class="num"><span id="rk">—</span> km</b><b class="num"><span id="pctv">100</span>%</b></div></div>
-  <p id="whkm" class="cap">Con tu consumo reciente</p>
+  
   <div class="bat">
     <button id="dn" aria-label="Bajar 1 por ciento">−</button>
     <div class="bi"><input id="pct" class="num" type="number" inputmode="numeric" min="0" max="100" value="100" aria-label="Porcentaje de batería"><span>%</span></div>
     <button id="up" aria-label="Subir 1 por ciento">+</button>
   </div>
-  <p id="wh" class="cap">% según la app de Segway</p>
+  
   <p id="gps" class="cap">GPS apagado. Toca Iniciar viaje.</p>
     <div id="locHelp" class="card help" hidden><b>Falta activar la ubicación</b><p>En el iPhone: Ajustes → Privacidad y seguridad → Localización → Safari (sitios web) y elige "Mientras se usa". Después toca Reintentar.</p><button id="locRetry" type="button" class="primary">Reintentar</button></div>
   
     <div class="seg" id="dir" role="group" aria-label="Dirección del viaje">
     <button data-d="ida">Ida</button><button data-d="vuelta">Vuelta</button><button data-d="otro">Otra ruta</button>
   </div>
-    <div class="ctl">
-    <button id="go" class="primary">Iniciar viaje</button>
-    <button id="reset">Reiniciar</button>
-    <button id="fin" class="danger">Finalizar viaje</button>
-    <button id="shareLoc" class="wide">Compartir mi ubicación</button>
-  </div>
+    <div class="ctl"><button id="go" class="primary" type="button">Iniciar viaje</button><button id="fin" class="danger" type="button">Finalizar viaje</button></div>
     <div id="sum" class="card" hidden></div>
     <div class="cards"><div class="card"><div class="cv num"><span id="dist">0</span><small>km</small></div><div class="cl">Este trayecto</div></div><div class="card"><div class="cv num"><span id="mov">0</span><small></small></div><div class="cl">Duración de conducción</div></div><div class="card"><div class="cv num"><span id="rt">—</span><small>h:mm</small></div><div class="cl">Tiempo restante</div></div><div class="card"><div class="cv num"><span id="arr">—</span><small>%</small></div><div class="cl">Llegarás con</div></div></div>
   
-    <details class="more"><summary>Más datos del trayecto</summary><div class="cards"><div class="card"><div class="cv num"><span id="vmax">0</span><small>km/h</small></div><div class="cl">Velocidad máx.</div></div><div class="card"><div class="cv num"><span id="avg">0</span><small>km/h</small></div><div class="cl">Velocidad media</div></div><div class="card"><div class="cv num"><span id="rem">—</span><small>km</small></div><div class="cl">Falta de ruta</div></div><div class="card"><div class="cv num"><span id="used">0</span><small>Wh</small></div><div class="cl">Energía usada</div></div><div class="card"><div class="cv num"><span id="asc">0</span><small>m</small></div><div class="cl">Subida acumulada</div></div><div class="card"><div class="cv num"><span id="desc">0</span><small>m</small></div><div class="cl">Bajada acumulada</div></div></div></details>
+    <details class="more"><summary>Más datos del trayecto</summary><p id="whkm" class="cap">Con tu consumo reciente</p><p id="wh" class="cap">% según la app de Segway</p><div class="cards"><div class="card"><div class="cv num"><span id="vmax">0</span><small>km/h</small></div><div class="cl">Velocidad máx.</div></div><div class="card"><div class="cv num"><span id="avg">0</span><small>km/h</small></div><div class="cl">Velocidad media</div></div><div class="card"><div class="cv num"><span id="rem">—</span><small>km</small></div><div class="cl">Falta de ruta</div></div><div class="card"><div class="cv num"><span id="used">0</span><small>Wh</small></div><div class="cl">Energía usada</div></div><div class="card"><div class="cv num"><span id="asc">0</span><small>m</small></div><div class="cl">Subida acumulada</div></div><div class="card"><div class="cv num"><span id="desc">0</span><small>m</small></div><div class="cl">Bajada acumulada</div></div></div></details>
   </section>
   <section class="page" data-p="map">
     <div class="mapwrap"><div id="map" class="mapc"></div><div id="mapmsg" class="mapmsg"><i></i><span id="mapmsgT">Buscando tu ubicación…</span></div></div>
@@ -267,13 +284,14 @@ body,.card,.range,details.more,#tabbar,#nav,#gps,.seg{transition:background-colo
     <p class="note">La autonomía y la potencia son estimaciones y no reemplazan el indicador de batería de la patineta.</p>
   
     <h3 class="gh">Ayuda</h3><label>Guía de inicio<button id="onbAgain" type="button">Ver</button></label>
-    <p id="dbg" class="cap">v22 · sin lecturas todavía</p>
+    <p id="dbg" class="cap">v23 · sin lecturas todavía</p>
   </section>
 </main>
 <nav id="tabbar" aria-label="Secciones"><i id="lens"></i><button type="button" data-p="trip" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17a8 8 0 1116 0"/><path d="M12 17l4-6"/><circle cx="12" cy="17" r="1"/></svg><span>Viaje</span></button><button type="button" data-p="map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg><span>Mapa</span></button><button type="button" data-p="hist"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg><span>Historial</span></button><button type="button" data-p="set"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h9M18 7h1M5 17h1M10 17h9"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Ajustes</span></button></nav>
 <div id="navsheet" class="sheet" hidden><div class="sheet-in"><div class="sheet-top"><div class="sheet-h"><h2>¿A dónde vamos?</h2><button id="navX" type="button">Cerrar</button></div><input id="q" type="search" placeholder="Busca un lugar o una dirección" autocomplete="off"></div>
   <div id="nres" class="rl"></div><div id="rprev" class="card" hidden></div><p id="navmsg" class="note"></p></div></div>
 
+<div id="actions" hidden><div class="acts"><button id="reset" type="button" class="danger">Reiniciar viaje</button><button id="shareLoc" type="button">Compartir mi ubicación</button><button id="actX" type="button">Cancelar</button></div></div>
 <div id="onb" class="sheet" hidden><div class="sheet-in onb-in">
   <div class="onb-view"><div class="onb-track" id="onbTrack">
     <section class="onb-step"><svg viewBox="0 0 120 120" aria-hidden="true"><path d="M30 94A42 42 0 1 1 90 94"/><path d="M60 64L82 40"/><circle cx="60" cy="64" r="4" fill="var(--accent)" stroke="none"/></svg><h2>Bienvenido a Rodar</h2><p>Mide tu velocidad, calcula cuánta batería te queda y te guía hasta tu destino en la patineta. Todo se guarda solo en tu teléfono.</p></section>
@@ -379,7 +397,7 @@ function setPct(v, auto){
 
 function onPos(p){
   const c = p.coords; LF = {lat:c.latitude, lon:c.longitude, t:Date.now()}; if (LOC !== 'ok') setLoc('ok');
-  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v22 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
+  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v23 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
   if (c.accuracy > 60) { $('gps').textContent = 'Señal GPS débil (±' + Math.round(c.accuracy) + ' m)'; return; }
   const prev = T.last, dt = prev ? (p.timestamp - prev.t) / 1000 : 0;
   if (prev && dt < 0.8 && c.speed == null) return;
@@ -411,7 +429,7 @@ function onPos(p){
 async function start(){
   if (!('geolocation' in navigator)) { $('gps').textContent = 'Este navegador no ofrece GPS.'; return; }
   if (!T.log.length) { T.startPct = T.pct; T.log.push({d:0, pct:T.pct}); }
-  T.id = T.id || Date.now(); T.n = 0; T.buf = []; T.mp = T.pct; T.md = T.dist; warmOff(); document.body.classList.add('riding'); if (S.road !== false) { document.body.classList.add('road-on'); RD.mode = 'ride'; roadStart(); }
+  T.id = T.id || Date.now(); T.n = 0; T.buf = []; T.mp = T.pct; T.md = T.dist; warmOff(); document.body.classList.add('has-trip'); document.body.classList.add('riding'); if (S.road !== false) { document.body.classList.add('road-on'); RD.mode = 'ride'; roadStart(); }
   T.on = true; T.last = null; $('go').textContent = 'Pausar'; $('sum').hidden = true;
   if (S.watch) watchOn();
   startSay();
@@ -433,7 +451,7 @@ function pause(){
   saveTrip(); $('gps').textContent = 'En pausa.'; render();
 }
 $('go').onclick = () => T.on ? pause() : start();
-$('reset').onclick = () => { if (T.on) pause(); Object.assign(T, {dist:0, mov:0, log:[], said:{}, startPct:T.pct, spd:0, id:null, asc:0, desc:0, alt:null, altRef:null, max:0, pts:[], lastPt:0, ri:0}); trackClear(); $('go').textContent = 'Iniciar viaje'; $('gps').textContent = 'Viaje reiniciado.'; document.body.classList.remove('road-on'); RD.mode = 'rest'; render(); };
+$('reset').onclick = () => { if (T.on) pause(); Object.assign(T, {dist:0, mov:0, log:[], said:{}, startPct:T.pct, spd:0, id:null, asc:0, desc:0, alt:null, altRef:null, max:0, pts:[], lastPt:0, ri:0}); trackClear(); $('go').textContent = 'Iniciar viaje'; $('gps').textContent = 'Viaje reiniciado.'; document.body.classList.remove('road-on', 'has-trip'); RD.mode = 'rest'; render(); };
 let finTimer = 0;
 function showSummary(rows, note, rt, dir){
   const el = $('sum'); el.textContent = '';
@@ -463,7 +481,7 @@ function finish(){
   showSummary(rows, T.dist >= 200 ? 'Guardado en el historial (' + DL[T.dir] + ').' : 'Viaje muy corto: no se guardó en el historial.', rt, T.dir);
   Object.assign(T, {dist:0, mov:0, log:[], said:{}, startPct:T.pct, spd:0, id:null, asc:0, desc:0, alt:null, altRef:null, max:0, pts:[], lastPt:0, ri:0});
   trackClear();
-  $('go').textContent = 'Iniciar viaje'; $('gps').textContent = 'Viaje finalizado. GPS apagado.'; render();
+  $('go').textContent = 'Iniciar viaje'; $('gps').textContent = 'Viaje finalizado. GPS apagado.'; document.body.classList.remove('has-trip'); render();
   say('Viaje finalizado. Recorriste ' + km.toFixed(1).replace('.', ',') + ' kilómetros en ' + (avg > 0 ? Math.round(km / avg * 60) : 0) + ' minutos. Batería al ' + T.pct + ' por ciento.');
 }
 $('fin').onclick = () => {
@@ -505,8 +523,10 @@ function nowPlaying(rangeKm, avg, kmh){
 }
 $('watch').checked = !!S.watch;
 $('watch').onchange = e => { S.watch = e.target.checked; save(); if (T.on) { S.watch ? watchOn() : watchOff(); } };
+function themeMeta(){ const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = document.documentElement.dataset.theme === 'light' ? '#f3f0ea' : '#0e1013'; }
 if (S.theme) document.documentElement.dataset.theme = S.theme;
-$('theme').onclick = () => { const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'light' ? 'dark' : 'light'; S.theme = r.dataset.theme; save(); setTiles(); };
+themeMeta();
+$('theme').onclick = () => { const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'light' ? 'dark' : 'light'; S.theme = r.dataset.theme; save(); setTiles(); themeMeta(); };
 
 let H = []; try { H = JSON.parse(localStorage.getItem('mp-trips') || '[]'); } catch(e) {}
 const DL = {ida:'ida', vuelta:'vuelta', otro:'otra ruta'};
@@ -538,7 +558,7 @@ function renderHist(){
 document.querySelectorAll('#dir button').forEach(b => b.onclick = () => { S.dir = T.dir = b.dataset.d; T.ri = 0; save(); drawRoute(); render(); });
 $('clr').onclick = () => { H = []; try { localStorage.removeItem('mp-trips'); } catch(e) {} renderHist(); render(); };
 $('clrAll').onclick = () => {
-  H = []; T.id = null;
+  H = []; T.id = null; document.body.classList.remove('has-trip');
   try { localStorage.removeItem('mp-trips'); localStorage.removeItem('mp-settings'); localStorage.removeItem('mp-routes'); RT = {}; drawRoute(); } catch(e) {}
   Object.assign(S, {recent:[], onb:0, cap:187.2, res:5, base:7.1, baseV:1, voice:true, watch:false, dir:'otro'}); T.dir = 'otro';
   $('cap').value = S.cap; $('res').value = S.res; $('base').value = S.base; $('voice').checked = true; $('watch').checked = false; $('capSel').value = '187.2';
@@ -1113,7 +1133,11 @@ function go(pg){
   document.body.dataset.page = pg; $('tabbar').style.setProperty('--i', ['trip', 'map', 'hist', 'set'].indexOf(pg)); document.querySelectorAll('#tabbar button').forEach(b => b.classList.toggle('on', b.dataset.p === pg)); window.scrollTo(0, 0);
   if (pg === 'map') { if (G.tgt) G.pos = G.tgt.slice(); setTimeout(() => { try { if (GLM) GLM.resize(); if (MAP) MAP.invalidateSize(); } catch(e) {} }, 60); }
 }
-document.querySelectorAll('#tabbar button').forEach(b => b.onclick = () => go(b.dataset.p));
+document.querySelectorAll('#tabbar button').forEach(b => b.onclick = () => { if (document.body.dataset.page === b.dataset.p) window.scrollTo({top:0, behavior:'smooth'}); else go(b.dataset.p); });
+function actOpen(o){ $('actions').hidden = !o; }
+$('moreBtn').onclick = () => actOpen(true); $('actX').onclick = () => actOpen(false);
+$('actions').onclick = e => { if (e.target === $('actions')) actOpen(false); };
+$('reset').addEventListener('click', () => actOpen(false)); $('shareLoc').addEventListener('click', () => actOpen(false));
 setTimeout(() => { const s = $('splash'); if (s) s.remove(); }, 2300);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && T.on) { startWatch(); try { navigator.wakeLock.request('screen').then(l => { T.lock = l; }).catch(() => {}); } catch(e) {} } });
 let WARM = null;
@@ -1123,7 +1147,7 @@ function warmOn(){
     if (T.on) return;
     const a = Math.round(p.coords.accuracy); LF = {lat:p.coords.latitude, lon:p.coords.longitude, t:Date.now()}; if (LOC !== 'ok') setLoc('ok');
     $('gps').textContent = a <= 20 ? 'Señal GPS buena (±' + a + ' m). Listo para iniciar.' : 'Señal GPS ' + (a <= 60 ? 'regular' : 'débil') + ' (±' + a + ' m). Espera al aire libre.';
-    $('dbg').textContent = 'v22 · en espera · ±' + a + ' m';
+    $('dbg').textContent = 'v23 · en espera · ±' + a + ' m';
     mapPos(p.coords.latitude, p.coords.longitude);
   }, e => { if (e.code === 1) setLoc('denied'); $('gps').textContent = e.code === 1 ? 'Ubicación desactivada.' : 'Buscando señal GPS…'; },
   {enableHighAccuracy:true, maximumAge:0, timeout:60000});
