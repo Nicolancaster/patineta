@@ -151,6 +151,25 @@ label input[type=checkbox]:checked{background:var(--accent)}label input[type=che
 #range[data-lvl="crit"] .fill{animation:breathe 1.8s ease-in-out infinite}@keyframes breathe{50%{opacity:.95}}
 body,.card,.range,details.more,#tabbar,#nav,#gps,.seg{transition:background-color .35s,color .35s,border-color .35s}
 @media (prefers-reduced-motion:reduce){#splash{display:none}}
+
+.mapwrap{position:relative;margin-top:8px}.mapwrap #map{margin-top:0}
+.mapmsg{position:absolute;left:12px;right:12px;bottom:12px;z-index:5;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(23,26,31,.78);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);font-size:.9rem}
+.mapmsg[hidden]{display:none}.mapmsg i{width:10px;height:10px;border-radius:50%;background:var(--accent);flex:none;animation:pulse 1.6s ease-out infinite}.mapmsg.bad i{background:var(--bad);animation:none}
+:root[data-theme="light"] .mapmsg{background:rgba(255,255,255,.82)}
+.help{margin:10px 0}.help b{display:block;margin-bottom:4px}.help p{margin:0 0 10px;color:var(--mut);font-size:.9rem}.help[hidden]{display:none}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:26px 16px;background:var(--card);border:1px solid var(--line);border-radius:16px}
+.empty svg{width:130px;height:auto;fill:none;stroke:var(--mut);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;margin-bottom:6px}.empty svg .a{stroke:var(--accent)}
+.empty b{font:600 1.3rem var(--cond);letter-spacing:.04em;text-transform:uppercase;color:var(--fg)}.empty p{margin:0 0 10px;color:var(--mut);font-size:.9rem;max-width:30ch}
+#hist .empty button{padding:11px 24px}
+#onb{z-index:90}.onb-in{max-width:560px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 28px) 0 calc(env(safe-area-inset-bottom,0px) + 14px)}
+.onb-view{flex:1;overflow:hidden}.onb-track{display:flex;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.onb-step{flex:0 0 100%;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:20px 8px}
+.onb-step svg{width:170px;height:170px;margin:14px 0 6px;fill:none;stroke:var(--accent);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.onb-step h2{margin:0;font:600 2.1rem/1.05 var(--cond);letter-spacing:.04em;text-transform:uppercase}.onb-step p{margin:0;color:var(--mut);max-width:34ch}
+.onb-msg{font-size:.88rem;min-height:1.2em}.onb-msg[hidden]{display:none}.onb-ok{color:#59d38c!important}.onb-bad{color:var(--warn)!important}
+.onb-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:340px}.onb-opts button{display:flex;flex-direction:column;gap:2px;padding:14px 8px;font-weight:600}.onb-opts small{color:var(--mut);font-weight:400}.onb-opts button.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.onb-dots{display:flex;justify-content:center;gap:8px;margin:8px 0 16px}.onb-dots i{width:8px;height:8px;border-radius:99px;background:var(--track);transition:width .3s,background .3s}.onb-dots i.on{width:24px;background:var(--accent)}
+.onb-actions{display:grid;grid-template-columns:1fr 2fr;gap:10px}.onb-actions button{padding:15px;font-size:1rem}
 </style>
 </head>
 <body data-page="trip">
@@ -158,7 +177,7 @@ body,.card,.range,details.more,#tabbar,#nav,#gps,.seg{transition:background-colo
 <header id="top"><div id="nav" hidden><svg id="navA" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 9h-4.5v9h-5v-9H5z" fill="currentColor"/></svg><div class="nt"><b id="navD" class="num">—</b><span id="navT"></span><small id="navS"></small></div><button id="navStop" type="button" aria-label="Cancelar navegación">✕</button></div></header>
 <main>
   <section class="page" data-p="trip">
-    <div class="brand"><b>RODAR</b><i></i><span class="ver">v21</span></div>
+    <div class="brand"><b>RODAR</b><i></i><span class="ver">v22</span></div>
     <canvas id="road" aria-hidden="true"></canvas>
     <div class="gauge">
     <svg viewBox="0 0 300 300" aria-hidden="true">
@@ -180,6 +199,7 @@ body,.card,.range,details.more,#tabbar,#nav,#gps,.seg{transition:background-colo
   </div>
   <p id="wh" class="cap">% según la app de Segway</p>
   <p id="gps" class="cap">GPS apagado. Toca Iniciar viaje.</p>
+    <div id="locHelp" class="card help" hidden><b>Falta activar la ubicación</b><p>En el iPhone: Ajustes → Privacidad y seguridad → Localización → Safari (sitios web) y elige "Mientras se usa". Después toca Reintentar.</p><button id="locRetry" type="button" class="primary">Reintentar</button></div>
   
     <div class="seg" id="dir" role="group" aria-label="Dirección del viaje">
     <button data-d="ida">Ida</button><button data-d="vuelta">Vuelta</button><button data-d="otro">Otra ruta</button>
@@ -196,7 +216,7 @@ body,.card,.range,details.more,#tabbar,#nav,#gps,.seg{transition:background-colo
     <details class="more"><summary>Más datos del trayecto</summary><div class="cards"><div class="card"><div class="cv num"><span id="vmax">0</span><small>km/h</small></div><div class="cl">Velocidad máx.</div></div><div class="card"><div class="cv num"><span id="avg">0</span><small>km/h</small></div><div class="cl">Velocidad media</div></div><div class="card"><div class="cv num"><span id="rem">—</span><small>km</small></div><div class="cl">Falta de ruta</div></div><div class="card"><div class="cv num"><span id="used">0</span><small>Wh</small></div><div class="cl">Energía usada</div></div><div class="card"><div class="cv num"><span id="asc">0</span><small>m</small></div><div class="cl">Subida acumulada</div></div><div class="card"><div class="cv num"><span id="desc">0</span><small>m</small></div><div class="cl">Bajada acumulada</div></div></div></details>
   </section>
   <section class="page" data-p="map">
-    <div id="map" class="mapc"></div>
+    <div class="mapwrap"><div id="map" class="mapc"></div><div id="mapmsg" class="mapmsg"><i></i><span id="mapmsgT">Buscando tu ubicación…</span></div></div>
     <button id="dest" class="primary" type="button">Navegar a un destino</button>
     <div id="prof" class="card" hidden></div>
   </section>
@@ -246,13 +266,24 @@ body,.card,.range,details.more,#tabbar,#nav,#gps,.seg{transition:background-colo
     <p class="note">Privacidad: tu ubicación se procesa solo en este celular. La app no tiene cuentas ni cookies y no envía tu ubicación ni tus viajes a ningún servidor propio. Si usas la navegación, tu punto de partida, el destino y lo que escribas en el buscador se envían a OpenRouteService para calcular la ruta (y, si falla, a servidores de respaldo como FOSSGIS o Photon). Si el mapa está activado, tu celular descarga la librería del mapa (jsDelivr o cdnjs) y los mosaicos del mapa (CARTO y OpenStreetMap, o Esri si eliges satélite), y esos servicios pueden ver tu dirección IP y la zona que consultas; desactiva el mapa en Ajustes para evitarlo. Solo guarda tus ajustes y viajes en este navegador, y puedes borrarlos en Historial.</p>
     <p class="note">La autonomía y la potencia son estimaciones y no reemplazan el indicador de batería de la patineta.</p>
   
-    <p id="dbg" class="cap">v21 · sin lecturas todavía</p>
+    <h3 class="gh">Ayuda</h3><label>Guía de inicio<button id="onbAgain" type="button">Ver</button></label>
+    <p id="dbg" class="cap">v22 · sin lecturas todavía</p>
   </section>
 </main>
 <nav id="tabbar" aria-label="Secciones"><i id="lens"></i><button type="button" data-p="trip" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17a8 8 0 1116 0"/><path d="M12 17l4-6"/><circle cx="12" cy="17" r="1"/></svg><span>Viaje</span></button><button type="button" data-p="map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.2-6-10a6 6 0 1112 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg><span>Mapa</span></button><button type="button" data-p="hist"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg><span>Historial</span></button><button type="button" data-p="set"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h9M18 7h1M5 17h1M10 17h9"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>Ajustes</span></button></nav>
 <div id="navsheet" class="sheet" hidden><div class="sheet-in"><div class="sheet-top"><div class="sheet-h"><h2>¿A dónde vamos?</h2><button id="navX" type="button">Cerrar</button></div><input id="q" type="search" placeholder="Busca un lugar o una dirección" autocomplete="off"></div>
   <div id="nres" class="rl"></div><div id="rprev" class="card" hidden></div><p id="navmsg" class="note"></p></div></div>
 
+<div id="onb" class="sheet" hidden><div class="sheet-in onb-in">
+  <div class="onb-view"><div class="onb-track" id="onbTrack">
+    <section class="onb-step"><svg viewBox="0 0 120 120" aria-hidden="true"><path d="M30 94A42 42 0 1 1 90 94"/><path d="M60 64L82 40"/><circle cx="60" cy="64" r="4" fill="var(--accent)" stroke="none"/></svg><h2>Bienvenido a Rodar</h2><p>Mide tu velocidad, calcula cuánta batería te queda y te guía hasta tu destino en la patineta. Todo se guarda solo en tu teléfono.</p></section>
+    <section class="onb-step"><svg viewBox="0 0 120 120" aria-hidden="true"><path d="M60 108S28 78 28 52a32 32 0 0 1 64 0c0 26-32 56-32 56z"/><circle cx="60" cy="52" r="11"/></svg><h2>Tu ubicación</h2><p>Rodar usa el GPS para calcular tu velocidad y la distancia, y para llevarte a un destino. No se envía a ningún servidor, salvo cuando pides una ruta.</p><button id="onbLoc" type="button" class="primary">Permitir ubicación</button><p id="onbLocMsg" class="onb-msg"></p></section>
+    <section class="onb-step"><svg viewBox="0 0 120 120" aria-hidden="true"><rect x="14" y="40" width="84" height="46" rx="10"/><path d="M106 54v18"/><g fill="var(--accent)" stroke="none"><rect x="22" y="48" width="20" height="30" rx="4"/><rect x="46" y="48" width="20" height="30" rx="4"/><rect x="70" y="48" width="20" height="30" rx="4"/></g></svg><h2>Tu batería</h2><p>Elige la que usas para estimar la autonomía. La app aprende con tus viajes.</p><div class="onb-opts"><button type="button" data-cap="187.2" class="on">Interna<small>187 Wh</small></button><button type="button" data-cap="374.4">Con externa<small>374 Wh</small></button></div><p id="onbRange" class="onb-msg"></p></section>
+    <section class="onb-step"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="62" r="42"/><path d="M40 64l14 14 28-30"/></svg><h2>Todo listo</h2><p>Toca Iniciar viaje cuando salgas. En las paradas, ajusta el porcentaje de batería con + y −.</p><p id="onbInstall" class="onb-msg" hidden>Para tenerla como app: Compartir → Añadir a pantalla de inicio.</p></section>
+  </div></div>
+  <div class="onb-dots" id="onbDots"><i class="on"></i><i></i><i></i><i></i></div>
+  <div class="onb-actions"><button id="onbSkip" type="button">Omitir</button><button id="onbNext" type="button" class="primary">Siguiente</button></div>
+</div></div>
 <script>
 const $ = id => document.getElementById(id);
 const nf = (x, d) => x.toFixed(d).replace('.', ',');
@@ -347,8 +378,8 @@ function setPct(v, auto){
 }
 
 function onPos(p){
-  const c = p.coords; LF = {lat:c.latitude, lon:c.longitude, t:Date.now()};
-  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v21 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
+  const c = p.coords; LF = {lat:c.latitude, lon:c.longitude, t:Date.now()}; if (LOC !== 'ok') setLoc('ok');
+  T.n = (T.n || 0) + 1; $('dbg').textContent = 'v22 · lecturas ' + T.n + ' · ±' + Math.round(c.accuracy) + ' m · GPS ' + (c.speed == null ? 'sin dato' : (c.speed * 3.6).toFixed(1) + ' km/h');
   if (c.accuracy > 60) { $('gps').textContent = 'Señal GPS débil (±' + Math.round(c.accuracy) + ' m)'; return; }
   const prev = T.last, dt = prev ? (p.timestamp - prev.t) / 1000 : 0;
   if (prev && dt < 0.8 && c.speed == null) return;
@@ -392,7 +423,7 @@ async function start(){
 function startWatch(){
   try { if (T.watch != null) navigator.geolocation.clearWatch(T.watch); } catch(e) {}
   T.watch = navigator.geolocation.watchPosition(onPos,
-    e => { $('gps').textContent = e.code === 1 ? 'Permiso de ubicación denegado. Actívalo en el navegador.' : e.code === 3 ? 'Esperando señal GPS…' : 'No se pudo leer el GPS.'; },
+    e => { if (e.code === 1) setLoc('denied'); $('gps').textContent = e.code === 1 ? 'Ubicación desactivada.' : e.code === 3 ? 'Esperando señal GPS…' : 'No se pudo leer el GPS.'; },
     {enableHighAccuracy:true, maximumAge:0, timeout:60000});
 }
 function pause(){
@@ -496,7 +527,7 @@ function saveTrip(){
 function renderHist(){
   renderChart();
   const el = $('hist'); el.textContent = '';
-  if (!H.length) { el.textContent = 'Aún no hay viajes guardados.'; return; }
+  if (!H.length) { el.innerHTML = EMPTY_HIST; const b = el.querySelector('button'); if (b) b.onclick = () => go('trip'); return; }
   H.slice(0, 10).forEach((t, i) => {
     const r = document.createElement('div'); r.className = 'h'; r.style.setProperty('--k', i);
     [new Date(t.id).toLocaleDateString('es-CO', {day:'numeric', month:'short'}) + ' ' + DL[t.dir], nf(t.km, 1) + ' km', t.whkm ? nf(t.whkm, 1) + ' Wh/km' : 'sin dato', '↑' + t.asc + ' ↓' + t.desc + ' m']
@@ -509,7 +540,7 @@ $('clr').onclick = () => { H = []; try { localStorage.removeItem('mp-trips'); } 
 $('clrAll').onclick = () => {
   H = []; T.id = null;
   try { localStorage.removeItem('mp-trips'); localStorage.removeItem('mp-settings'); localStorage.removeItem('mp-routes'); RT = {}; drawRoute(); } catch(e) {}
-  Object.assign(S, {cap:187.2, res:5, base:7.1, baseV:1, voice:true, watch:false, dir:'otro'}); T.dir = 'otro';
+  Object.assign(S, {recent:[], onb:0, cap:187.2, res:5, base:7.1, baseV:1, voice:true, watch:false, dir:'otro'}); T.dir = 'otro';
   $('cap').value = S.cap; $('res').value = S.res; $('base').value = S.base; $('voice').checked = true; $('watch').checked = false; $('capSel').value = '187.2';
   renderHist(); render();
 };
@@ -786,7 +817,7 @@ function cumOf(P){ const c = [0]; for (let i = 1; i < P.length; i++) c.push(c[i 
 function navSet(r){ NAV.r = r; NAV.cum = cumOf(r.pts); NAV.k = 0; NAV.si = 0; NAV.off = 0; NAV.told = {'0a':1, '0b':1}; navDraw(true); }
 function navEnd(){ NAV.on = false; NAV.r = null; NAV.pre = null; $('nav').hidden = true; $('nav').classList.remove('near'); navDraw(); }
 function navStart(){
-  const p = NAV.pre; if (!p) return; NAV.on = true; NAV.dest = p.dest; navSet(p.r); navSheet(false); $('nav').hidden = false;
+  const p = NAV.pre; if (!p) return; NAV.on = true; NAV.dest = p.dest; pushRecent(p.dest); navSet(p.r); navSheet(false); $('nav').hidden = false;
   say('Navegación iniciada. ' + p.r.steps[0].text); if (!T.on) start();
   go('map'); navFit(p.r.pts);
 }
@@ -817,7 +848,7 @@ function navUpdate(lat, lon, acc){ try {
   $('navS').textContent = nf(rem / 1000, 1) + ' km · ' + mins + ' min · llegas con ' + arr + ' %';
 } catch(e) {} }
 function navSheet(o){ const s = $('navsheet'); document.body.style.overflow = o ? 'hidden' : '';
-  if (o) { s.classList.remove('out'); s.hidden = false; $('navmsg').textContent = ''; $('q').focus(); } else if (!s.hidden) { s.classList.add('out'); setTimeout(() => { s.hidden = true; s.classList.remove('out'); }, 210); } }
+  if (o) { s.classList.remove('out'); s.hidden = false; $('navmsg').textContent = ''; if (!$('q').value.trim()) navHome(); $('q').focus(); } else if (!s.hidden) { s.classList.add('out'); setTimeout(() => { s.hidden = true; s.classList.remove('out'); }, 210); } }
 function navPreview(){
   const p = NAV.pre, el = $('rprev'); el.textContent = ''; if (!p) { el.hidden = true; return; }
   const km = p.r.dist / 1000, arr = Math.max(0, Math.round(T.pct - km * baseFor(T.dir) / S.cap * 100));
@@ -832,12 +863,47 @@ async function navChoose(d){
   catch(e) { $('navmsg').textContent = 'No pude calcular la ruta. Revisa tu conexión, tu clave o el GPS e intenta de nuevo.'; }
 }
 let qT = 0;
-$('q').oninput = e => { clearTimeout(qT); const v = e.target.value.trim(); NAV.pre = null; navPreview(); if (v.length < 3) { $('nres').textContent = ''; return; }
+$('q').oninput = e => { clearTimeout(qT); const v = e.target.value.trim(); NAV.pre = null; navPreview(); if (v.length < 3) { navHome(); return; }
   qT = setTimeout(async () => { try { const a = await geocode(v); $('nres').textContent = ''; $('navmsg').textContent = a.length ? '' : 'Sin resultados.';
     a.forEach(x => { const b = document.createElement('button'); b.type = 'button'; b.textContent = x.label; b.onclick = () => navChoose(x); $('nres').appendChild(b); }); }
     catch(e) { $('navmsg').textContent = 'No pude buscar ahora. Revisa tu conexión.'; } }, 350); };
 $('dest').onclick = () => navSheet(true); $('navX').onclick = () => navSheet(false); $('navStop').onclick = () => { say('Navegación cancelada.'); navEnd(); };
 $('orsKey').value = S.orsKey || ''; $('orsKey').onchange = e => { S.orsKey = e.target.value.trim(); save(); };
+
+const EMPTY_HIST = '<div class="empty"><svg viewBox="0 0 120 80" aria-hidden="true"><path d="M6 70h108" stroke-dasharray="7 7"/><circle cx="38" cy="58" r="8"/><circle cx="86" cy="58" r="8"/><path d="M38 58h38"/><path class="a" d="M80 52L90 16h10"/></svg><b>Aún no hay viajes</b><p>Cuando pauses o finalices un viaje de más de 200 m, aparece aquí con su consumo.</p><button type="button" class="primary">Ir a Viaje</button></div>';
+let LOC = 'wait';
+function setLoc(s){
+  LOC = s; const dn = s === 'denied'; $('locHelp').hidden = !dn; const m = $('mapmsg'); m.hidden = s === 'ok'; m.classList.toggle('bad', dn);
+  $('mapmsgT').textContent = dn ? 'Ubicación desactivada. Actívala para ver dónde estás.' : 'Buscando tu ubicación…';
+}
+$('locRetry').onclick = () => { setLoc('wait'); warmOff(); warmOn(); if (T.on) startWatch(); };
+function pushRecent(d){ const r = (S.recent || []).filter(x => x.label !== d.label); r.unshift({label:d.label, lon:d.lon, lat:d.lat}); S.recent = r.slice(0, 5); save(); }
+function navHome(){
+  const el = $('nres'); el.textContent = ''; const r = S.recent || [], t = document.createElement('div'); t.className = 'sub';
+  t.textContent = r.length ? 'Recientes' : 'Escribe un barrio, una dirección o un lugar. Por ejemplo: Parque Berrío.'; el.appendChild(t);
+  r.forEach(x => { const b = document.createElement('button'); b.type = 'button'; b.textContent = x.label; b.onclick = () => navChoose(x); el.appendChild(b); });
+}
+let OB = 0;
+function onbRange(){ $('onbRange').textContent = 'Autonomía estimada con la batería llena: ' + nf(S.cap * (100 - S.res) / 100 / S.base, 0) + ' km'; }
+function onbShow(i){
+  OB = Math.max(0, Math.min(3, i)); $('onbTrack').style.transform = 'translateX(' + (-OB * 100) + '%)';
+  document.querySelectorAll('#onbDots i').forEach((d, k) => d.classList.toggle('on', k === OB));
+  $('onbNext').textContent = OB === 3 ? 'Empezar' : 'Siguiente'; $('onbSkip').style.visibility = OB === 3 ? 'hidden' : 'visible'; onbRange();
+  document.querySelectorAll('.onb-opts button').forEach(b => b.classList.toggle('on', Math.abs(+b.dataset.cap - S.cap) < 1));
+  $('onbInstall').hidden = !!(navigator.standalone || (typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches));
+}
+function onbOpen(i){ const s = $('onb'); s.classList.remove('out'); s.hidden = false; document.body.style.overflow = 'hidden'; onbShow(i || 0); }
+function onbClose(){ const s = $('onb'); S.onb = 1; save(); document.body.style.overflow = ''; s.classList.add('out'); setTimeout(() => { s.hidden = true; s.classList.remove('out'); }, 230); }
+$('onbNext').onclick = () => OB === 3 ? onbClose() : onbShow(OB + 1); $('onbSkip').onclick = onbClose; $('onbAgain').onclick = () => onbOpen(0);
+document.querySelectorAll('.onb-opts button').forEach(b => b.onclick = () => { S.cap = +b.dataset.cap; $('cap').value = S.cap; $('capSel').value = String(S.cap); save(); render(); onbShow(OB); });
+$('onbLoc').onclick = () => {
+  const m = $('onbLocMsg'); m.className = 'onb-msg'; m.textContent = 'Esperando tu respuesta…';
+  if (!('geolocation' in navigator)) { m.textContent = 'Este navegador no ofrece GPS.'; return; }
+  navigator.geolocation.getCurrentPosition(p => { LF = {lat:p.coords.latitude, lon:p.coords.longitude, t:Date.now()}; setLoc('ok'); m.className = 'onb-msg onb-ok'; m.textContent = 'Listo: ya tengo tu ubicación (±' + Math.round(p.coords.accuracy) + ' m).'; warmOn(); },
+    e => { if (e.code === 1) setLoc('denied'); m.className = 'onb-msg onb-bad'; m.textContent = e.code === 1 ? 'La ubicación está desactivada. En el iPhone: Ajustes → Privacidad y seguridad → Localización → Safari (sitios web) → "Mientras se usa". Luego vuelve y toca de nuevo.' : 'No pude obtener la señal ahora. Prueba al aire libre.'; },
+    {enableHighAccuracy:true, timeout:12000});
+};
+if (!S.onb) onbOpen(0);
 initMap();
 addEventListener('pagehide', saveTrip);
 
@@ -1055,11 +1121,11 @@ function warmOn(){
   if (T.on || WARM != null || !('geolocation' in navigator)) return;
   WARM = navigator.geolocation.watchPosition(p => {
     if (T.on) return;
-    const a = Math.round(p.coords.accuracy); LF = {lat:p.coords.latitude, lon:p.coords.longitude, t:Date.now()};
+    const a = Math.round(p.coords.accuracy); LF = {lat:p.coords.latitude, lon:p.coords.longitude, t:Date.now()}; if (LOC !== 'ok') setLoc('ok');
     $('gps').textContent = a <= 20 ? 'Señal GPS buena (±' + a + ' m). Listo para iniciar.' : 'Señal GPS ' + (a <= 60 ? 'regular' : 'débil') + ' (±' + a + ' m). Espera al aire libre.';
-    $('dbg').textContent = 'v21 · en espera · ±' + a + ' m';
+    $('dbg').textContent = 'v22 · en espera · ±' + a + ' m';
     mapPos(p.coords.latitude, p.coords.longitude);
-  }, e => { $('gps').textContent = e.code === 1 ? 'Permiso de ubicación denegado. Actívalo en el navegador.' : 'Buscando señal GPS…'; },
+  }, e => { if (e.code === 1) setLoc('denied'); $('gps').textContent = e.code === 1 ? 'Ubicación desactivada.' : 'Buscando señal GPS…'; },
   {enableHighAccuracy:true, maximumAge:0, timeout:60000});
 }
 function warmOff(){ if (WARM != null) { try { navigator.geolocation.clearWatch(WARM); } catch(e) {} WARM = null; } }
